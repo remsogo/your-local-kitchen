@@ -3,6 +3,7 @@ export interface MenuItem {
   description: string;
   prices: { label: string; price: string }[];
   imageUrl?: string;
+  dbId?: string;
 }
 
 export interface MenuCategory {

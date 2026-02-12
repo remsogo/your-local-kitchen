@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { menuData, MenuCategory } from "@/data/menuData";
+import { useMenu } from "@/hooks/useMenu";
 
 const Menu = () => {
-  const [activeCategory, setActiveCategory] = useState(menuData[0].id);
+  const { menu, loading } = useMenu();
+  const [activeCategory, setActiveCategory] = useState<string>("");
 
-  // Load menu from localStorage if available (admin edits)
-  const getMenu = (): MenuCategory[] => {
-    const saved = localStorage.getItem("pizzatiq_menu");
-    return saved ? JSON.parse(saved) : menuData;
-  };
+  // Set initial active category when menu loads
+  const activeCat = activeCategory || menu[0]?.id || "";
 
-  const menu = getMenu();
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <p className="text-muted-foreground">Chargement du menu...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-20 pb-16">
@@ -27,7 +31,7 @@ const Menu = () => {
                 document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeCategory === cat.id
+                activeCat === cat.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-primary/20"
               }`}
