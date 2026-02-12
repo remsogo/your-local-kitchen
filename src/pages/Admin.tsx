@@ -1,71 +1,18 @@
-import { useState, useRef, useEffect } from "react";
-import { menuData, MenuCategory, MenuItem } from "@/data/menuData";
+import { useState, useRef } from "react";
+import { MenuItem } from "@/data/menuData";
 import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useMenu } from "@/hooks/useMenu";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const Admin = () => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [menu, setMenu] = useState<MenuCategory[]>(() => {
-    const saved = localStorage.getItem("pizzatiq_menu");
-    return saved ? JSON.parse(saved) : menuData;
-  });
+  const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
+  const { menu, loading: menuLoading, refetch } = useMenu();
   const [editingItem, setEditingItem] = useState<{ catId: string; itemIdx: number } | null>(null);
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const checkAdmin = async (userId: string) => {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-      setIsAdmin(!!data);
-      setAuthenticated(!!data);
-      setLoading(false);
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        checkAdmin(session.user.id);
-      } else {
-        setAuthenticated(false);
-        setIsAdmin(false);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError("");
-    setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-      setLoginError(error.message);
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const saveMenu = (newMenu: MenuCategory[]) => {
-    setMenu(newMenu);
-    localStorage.setItem("pizzatiq_menu", JSON.stringify(newMenu));
-  };
 
   const startEdit = (catId: string, itemIdx: number) => {
     const cat = menu.find((c) => c.id === catId)!;
@@ -73,24 +20,42 @@ const Admin = () => {
     setEditForm({ ...cat.items[itemIdx] });
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editingItem) return;
-    const newMenu = menu.map((cat) => {
-      if (cat.id !== editingItem.catId) return cat;
-      const newItems = [...cat.items];
-      newItems[editingItem.itemIdx] = editForm;
-      return { ...cat, items: newItems };
-    });
-    saveMenu(newMenu);
-    setEditingItem(null);
+    setSaving(true);
+    try {
+      const item = menu.find(c => c.id === editingItem.catId)!.items[editingItem.itemIdx];
+      const dbId = item.dbId;
+      if (!dbId) return;
+
+      // Update item
+      await supabase
+        .from("menu_items")
+        .update({ name: editForm.name, description: editForm.description, image_url: editForm.imageUrl || null })
+        .eq("id", dbId);
+
+      // Delete old prices and insert new ones
+      await supabase.from("menu_item_prices").delete().eq("item_id", dbId);
+      if (editForm.prices.length > 0) {
+        await supabase.from("menu_item_prices").insert(
+          editForm.prices.map((p, i) => ({ item_id: dbId, label: p.label, price: p.price, sort_order: i }))
+        );
+      }
+
+      await refetch();
+      setEditingItem(null);
+    } catch (err) {
+      console.error("Error saving:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const deleteItem = (catId: string, itemIdx: number) => {
-    const newMenu = menu.map((cat) => {
-      if (cat.id !== catId) return cat;
-      return { ...cat, items: cat.items.filter((_, i) => i !== itemIdx) };
-    });
-    saveMenu(newMenu);
+  const deleteItem = async (catId: string, itemIdx: number) => {
+    const item = menu.find(c => c.id === catId)!.items[itemIdx];
+    if (!item.dbId) return;
+    await supabase.from("menu_items").delete().eq("id", item.dbId);
+    await refetch();
   };
 
   const handleImageUpload = async (file: File) => {
@@ -120,6 +85,8 @@ const Admin = () => {
       setUploading(false);
     }
   };
+
+  const loading = authLoading || menuLoading;
 
   if (loading) {
     return (
@@ -179,7 +146,7 @@ const Admin = () => {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mb-12">
-          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrés localement.
+          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrés dans la base de données.
         </p>
 
         {/* Editing modal */}
@@ -281,9 +248,10 @@ const Admin = () => {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={saveEdit}
-                  className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-lg py-2 font-semibold hover:opacity-90 transition-opacity"
+                  disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-lg py-2 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  <Save size={16} /> Enregistrer
+                  <Save size={16} /> {saving ? "Enregistrement..." : "Enregistrer"}
                 </button>
                 <button
                   onClick={() => setEditingItem(null)}
@@ -304,7 +272,7 @@ const Admin = () => {
               <div className="space-y-2">
                 {category.items.map((item, idx) => (
                   <div
-                    key={item.name + idx}
+                    key={item.dbId || item.name + idx}
                     className="bg-card rounded-lg p-4 flex items-center justify-between border border-border/50"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
