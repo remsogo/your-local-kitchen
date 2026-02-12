@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { menuData, MenuCategory, MenuItem } from "@/data/menuData";
-import { Lock, Save, Plus, Trash2, Edit2 } from "lucide-react";
+import { Lock, Save, Plus, Trash2, Edit2, Image, Upload, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const ADMIN_PASSWORD = "pizzatiq2024";
 
@@ -13,6 +14,8 @@ const Admin = () => {
   });
   const [editingItem, setEditingItem] = useState<{ catId: string; itemIdx: number } | null>(null);
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +55,34 @@ const Admin = () => {
     saveMenu(newMenu);
   };
 
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `menu-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("menu-images")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        alert("Erreur upload : " + uploadError.message);
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from("menu-images")
+        .getPublicUrl(filePath);
+
+      setEditForm({ ...editForm, imageUrl: data.publicUrl });
+    } catch (err) {
+      alert("Erreur lors de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (!authenticated) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
@@ -84,15 +115,13 @@ const Admin = () => {
         <h1 className="font-display text-5xl text-gradient text-center mb-8">Tableau de bord</h1>
 
         <p className="text-center text-sm text-muted-foreground mb-12">
-          Modifiez les prix et les descriptions de vos produits. Les changements sont enregistrés localement.
-          <br />
-          <span className="text-primary">Pour un vrai système d'administration, activez Lovable Cloud.</span>
+          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrés localement.
         </p>
 
         {/* Editing modal */}
         {editingItem && (
           <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-card rounded-xl p-6 max-w-md w-full card-glow">
+            <div className="bg-card rounded-xl p-6 max-w-md w-full card-glow max-h-[90vh] overflow-y-auto">
               <h3 className="font-display text-2xl text-foreground mb-4">Modifier le produit</h3>
               <div className="space-y-3">
                 <input
@@ -131,6 +160,59 @@ const Admin = () => {
                     />
                   </div>
                 ))}
+
+                {/* Image section */}
+                <div className="border border-border rounded-lg p-3 space-y-2">
+                  <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Image size={16} className="text-primary" /> Photo du produit
+                  </label>
+                  
+                  {editForm.imageUrl && (
+                    <div className="relative">
+                      <img
+                        src={editForm.imageUrl}
+                        alt={editForm.name}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => setEditForm({ ...editForm, imageUrl: undefined })}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="flex-1 flex items-center justify-center gap-2 bg-secondary text-secondary-foreground rounded-lg py-2 text-sm hover:bg-primary/20 transition-colors disabled:opacity-50"
+                    >
+                      <Upload size={14} />
+                      {uploading ? "Upload..." : "Uploader une photo"}
+                    </button>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(file);
+                    }}
+                  />
+
+                  <input
+                    className="w-full bg-secondary text-foreground rounded-lg px-3 py-2 border border-border focus:outline-none focus:ring-2 focus:ring-primary text-xs"
+                    value={editForm.imageUrl || ""}
+                    onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value || undefined })}
+                    placeholder="Ou collez une URL d'image..."
+                  />
+                </div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button
@@ -161,16 +243,25 @@ const Admin = () => {
                     key={item.name + idx}
                     className="bg-card rounded-lg p-4 flex items-center justify-between border border-border/50"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-foreground">{item.name}</span>
-                        {item.prices.map((p) => (
-                          <span key={p.label + p.price} className="bg-price text-price-foreground text-xs font-bold px-2 py-0.5 rounded">
-                            {p.label ? `${p.label} ` : ""}{p.price}
-                          </span>
-                        ))}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                          <Image size={16} className="text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-foreground">{item.name}</span>
+                          {item.prices.map((p) => (
+                            <span key={p.label + p.price} className="bg-price text-price-foreground text-xs font-bold px-2 py-0.5 rounded">
+                              {p.label ? `${p.label} ` : ""}{p.price}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{item.description}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{item.description}</p>
                     </div>
                     <div className="flex gap-2 ml-4 shrink-0">
                       <button

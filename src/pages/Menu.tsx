@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { menuData } from "@/data/menuData";
+import { menuData, MenuCategory } from "@/data/menuData";
 
 const Menu = () => {
   const [activeCategory, setActiveCategory] = useState(menuData[0].id);
+
+  // Load menu from localStorage if available (admin edits)
+  const getMenu = (): MenuCategory[] => {
+    const saved = localStorage.getItem("pizzatiq_menu");
+    return saved ? JSON.parse(saved) : menuData;
+  };
+
+  const menu = getMenu();
 
   return (
     <div className="min-h-screen pt-20 pb-16">
@@ -11,7 +19,7 @@ const Menu = () => {
 
         {/* Category tabs */}
         <div className="flex flex-wrap justify-center gap-2 mb-12 sticky top-16 z-40 bg-background/90 backdrop-blur-md py-4">
-          {menuData.map((cat) => (
+          {menu.map((cat) => (
             <button
               key={cat.id}
               onClick={() => {
@@ -31,7 +39,7 @@ const Menu = () => {
 
         {/* Menu sections */}
         <div className="max-w-4xl mx-auto space-y-16">
-          {menuData.map((category) => (
+          {menu.map((category) => (
             <section key={category.id} id={category.id} className="scroll-mt-32">
               <h2 className="font-display text-4xl text-gradient mb-2">{category.title}</h2>
               {category.subtitle && (
@@ -42,22 +50,32 @@ const Menu = () => {
                 {category.items.map((item) => (
                   <div
                     key={item.name}
-                    className="bg-card rounded-xl p-4 hover:card-glow transition-shadow border border-border/50"
+                    className="bg-card rounded-xl overflow-hidden hover:card-glow transition-shadow border border-border/50"
                   >
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-semibold text-foreground text-lg">{item.name}</h3>
-                      <div className="flex gap-2 shrink-0">
-                        {item.prices.map((p) => (
-                          <span
-                            key={p.label + p.price}
-                            className="bg-price text-price-foreground text-xs font-bold px-2 py-1 rounded"
-                          >
-                            {p.label ? `${p.label} ` : ""}{p.price}
-                          </span>
-                        ))}
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-40 object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold text-foreground text-lg">{item.name}</h3>
+                        <div className="flex gap-2 shrink-0">
+                          {item.prices.map((p) => (
+                            <span
+                              key={p.label + p.price}
+                              className="bg-price text-price-foreground text-xs font-bold px-2 py-1 rounded"
+                            >
+                              {p.label ? `${p.label} ` : ""}{p.price}
+                            </span>
+                          ))}
+                        </div>
                       </div>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 ))}
               </div>
