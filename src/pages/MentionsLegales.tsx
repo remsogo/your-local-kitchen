@@ -16,7 +16,7 @@ const MentionsLegales = () => (
 
         <section>
           <h2 className="font-display text-2xl text-foreground mb-3">Hébergement</h2>
-          <p>Ce site est hébergé par Lovable.</p>
+          <p>Ce site est hébergé par notre fournisseur d'hébergement web.</p>
         </section>
 
         <section>
