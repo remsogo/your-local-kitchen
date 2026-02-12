@@ -29,23 +29,15 @@ const Admin = () => {
         .maybeSingle();
       setIsAdmin(!!data);
       setAuthenticated(!!data);
+      setLoading(false);
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        await checkAdmin(session.user.id);
-      } else {
-        setAuthenticated(false);
-        setIsAdmin(false);
-      }
-      setLoading(false);
-    });
-
-    // Also check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         checkAdmin(session.user.id);
       } else {
+        setAuthenticated(false);
+        setIsAdmin(false);
         setLoading(false);
       }
     });
