@@ -1,73 +1,51 @@
-# Welcome to your Lovable project
+# Your Local Kitchen
 
-## Project info
+Application React + Vite (TypeScript) prête à être publiée sur GitHub Pages.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Prérequis
 
-## How can I edit this code?
+- Node.js 20+
+- npm
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Installation locale
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
+cp .env.example .env
+# puis renseigner les vraies valeurs Supabase dans .env
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Variables d'environnement
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Créer un fichier `.env` à partir de `.env.example` :
 
-**Use GitHub Codespaces**
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Déploiement GitHub Pages (classique)
 
-## What technologies are used for this project?
+Le projet est configuré pour un déploiement de type **project pages** sur :
 
-This project is built with:
+`https://<username>.github.io/your-local-kitchen/`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Points déjà configurés :
 
-## How can I deploy this project?
+- `HashRouter` pour éviter les erreurs 404 côté GitHub Pages
+- `base` Vite sur `/your-local-kitchen/` en production
+- workflow GitHub Actions `.github/workflows/deploy.yml`
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Étapes GitHub
 
-## Can I connect a custom domain to my Lovable project?
+1. Créer les secrets repository :
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+2. Push sur `main`.
+3. Dans **Settings > Pages** : Source = **GitHub Actions**.
+4. Vérifier le run du workflow **Deploy to GitHub Pages**.
 
-Yes, you can!
+## Domaine personnalisé
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Pas encore activé dans ce repo.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Quand vous aurez le domaine, on ajoutera `public/CNAME` et la configuration DNS.
