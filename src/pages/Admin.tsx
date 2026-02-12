@@ -1,13 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { menuData, MenuCategory, MenuItem } from "@/data/menuData";
-import { Lock, Save, Plus, Trash2, Edit2, Image, Upload, X } from "lucide-react";
+import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
-const ADMIN_PASSWORD = "pizzatiq2024";
 
 const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [menu, setMenu] = useState<MenuCategory[]>(() => {
     const saved = localStorage.getItem("pizzatiq_menu");
     return saved ? JSON.parse(saved) : menuData;
@@ -17,11 +19,45 @@ const Admin = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        setIsAdmin(!!data);
+        setAuthenticated(!!data);
+      } else {
+        setAuthenticated(false);
+        setIsAdmin(false);
+      }
+      setLoading(false);
+    });
+
+    supabase.auth.getSession();
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setAuthenticated(true);
+    setLoginError("");
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      setLoginError(error.message);
+      setLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
 
   const saveMenu = (newMenu: MenuCategory[]) => {
@@ -83,7 +119,15 @@ const Admin = () => {
     }
   };
 
-  if (!authenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <p className="text-muted-foreground">Chargement...</p>
+      </div>
+    );
+  }
+
+  if (!authenticated || !isAdmin) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <form onSubmit={handleLogin} className="bg-card rounded-xl p-8 max-w-sm w-full card-glow">
@@ -91,6 +135,16 @@ const Admin = () => {
             <Lock size={24} className="text-primary" />
             <h1 className="font-display text-3xl text-foreground">Admin</h1>
           </div>
+          {loginError && (
+            <p className="text-destructive text-sm mb-4">{loginError}</p>
+          )}
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-secondary text-foreground rounded-lg px-4 py-3 mb-3 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+          />
           <input
             type="password"
             placeholder="Mot de passe"
@@ -112,7 +166,15 @@ const Admin = () => {
   return (
     <div className="min-h-screen pt-20 pb-16">
       <div className="container mx-auto px-4 max-w-4xl">
-        <h1 className="font-display text-5xl text-gradient text-center mb-8">Tableau de bord</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="font-display text-5xl text-gradient">Tableau de bord</h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-lg px-4 py-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          >
+            <LogOut size={16} /> Déconnexion
+          </button>
+        </div>
 
         <p className="text-center text-sm text-muted-foreground mb-12">
           Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrés localement.
