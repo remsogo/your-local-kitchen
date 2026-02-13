@@ -65,11 +65,11 @@ const Menu = () => {
                       />
                     )}
                     <div className="relative min-h-[150px] p-4 pt-14 sm:min-h-[165px] sm:pt-16">
-                      <div className="absolute top-3 right-3 flex max-w-[72%] flex-wrap justify-end gap-2">
+                      <div className="absolute top-3 right-3 left-3 flex flex-nowrap justify-end gap-1 overflow-x-auto">
                         {item.prices.map((p) => (
                           <span
                             key={p.label + p.price}
-                            className="bg-price text-price-foreground text-xs font-bold px-2 py-1 rounded"
+                            className="shrink-0 whitespace-nowrap rounded bg-price px-1.5 py-1 text-[11px] font-bold text-price-foreground sm:px-2 sm:text-xs"
                           >
                             {p.label ? `${p.label} ` : ""}{p.price}
                           </span>

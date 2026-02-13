@@ -1,4 +1,4 @@
-# Your Local Kitchen
+# Pizz'Atiq
 
 Application React + Vite (TypeScript) deployable on GitHub Pages.
 
@@ -27,15 +27,16 @@ Create `.env` from `.env.example`:
 
 ## GitHub Pages deploy
 
-This project is configured for project pages:
+This project is configured for custom domain deployment:
 
-`https://<username>.github.io/your-local-kitchen/`
+`https://pizzatiq.fr/`
 
 Already configured:
 
 - `HashRouter` to avoid 404 on refresh
-- Vite `base` set to `/your-local-kitchen/` in production
+- Vite `base` set to `/` for custom domain
 - GitHub Actions workflow: `.github/workflows/deploy.yml`
+- `public/CNAME` configured with `pizzatiq.fr`
 
 ### GitHub steps
 
@@ -51,4 +52,4 @@ Already configured:
 
 ## Custom domain
 
-Not configured yet. Add `public/CNAME` and DNS records when ready.
+DNS and registrar setup is done outside this repo (IONOS side).
