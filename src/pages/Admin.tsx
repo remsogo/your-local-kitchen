@@ -90,7 +90,7 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-32 flex items-center justify-center">
         <p className="text-muted-foreground">Chargement...</p>
       </div>
     );
@@ -98,7 +98,7 @@ const Admin = () => {
 
   if (!authenticated || !isAdmin) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-32 flex items-center justify-center">
         <form onSubmit={handleLogin} className="bg-card rounded-xl p-8 max-w-sm w-full card-glow">
           <div className="flex items-center gap-3 mb-6">
             <Lock size={24} className="text-primary" />
@@ -133,7 +133,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16">
+    <div className="min-h-screen pt-32 pb-16">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex justify-between items-center mb-8">
           <h1 className="font-display text-5xl text-gradient">Tableau de bord</h1>
@@ -141,12 +141,12 @@ const Admin = () => {
             onClick={handleLogout}
             className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-lg px-4 py-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"
           >
-            <LogOut size={16} /> Déconnexion
+            <LogOut size={16} /> DÃ©connexion
           </button>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mb-12">
-          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrés dans la base de données.
+          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrÃ©s dans la base de donnÃ©es.
         </p>
 
         {/* Editing modal */}
@@ -321,3 +321,4 @@ const Admin = () => {
 };
 
 export default Admin;
+

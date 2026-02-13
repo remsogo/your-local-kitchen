@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
+import StickyOrderBar from "./components/StickyOrderBar";
 import Footer from "./components/Footer";
+import PageMeta from "./components/PageMeta";
 import Index from "./pages/Index";
 import Menu from "./pages/Menu";
 import Contact from "./pages/Contact";
@@ -20,7 +22,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <HashRouter>
+        <PageMeta />
         <Header />
+        <StickyOrderBar />
         <main>
           <Routes>
             <Route path="/" element={<Index />} />

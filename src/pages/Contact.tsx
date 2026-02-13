@@ -6,7 +6,7 @@ const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
   .filter(Boolean);
 
 const Contact = () => (
-  <div className="min-h-screen pt-20 pb-16">
+  <div className="min-h-screen pt-32 pb-16">
     <div className="container mx-auto px-4 max-w-2xl">
       <h1 className="font-display text-5xl sm:text-6xl text-gradient text-center mb-12">Contact</h1>
 
@@ -20,7 +20,7 @@ const Contact = () => (
             </div>
             <div className="flex items-center gap-3 text-muted-foreground">
               <Clock size={18} className="text-primary shrink-0" />
-              <span>10:30–14:30 / 18:00–22:00 (tous les jours)</span>
+              <span>10:30â€“14:30 / 18:00â€“22:00 (tous les jours)</span>
             </div>
             {phoneNumbers.map((phone) => (
               <div key={phone} className="flex items-center gap-3 text-muted-foreground">
@@ -68,13 +68,13 @@ const Contact = () => (
             ))}
           </div>
           <p className="text-muted-foreground text-sm">
-            Nous livrons dans toutes les villes à 20 km ou moins de Sonchamp.
+            Nous livrons dans toutes les villes Ã  20 km ou moins de Sonchamp.
           </p>
           <p className="text-muted-foreground text-sm mt-2">
             Horaires de livraison : <span className="text-foreground font-medium">{deliveryHours}</span>
           </p>
           <p className="text-muted-foreground text-sm mt-2">
-            Frais de livraison : <span className="text-primary font-medium">1,50€</span> — Minimum de commande de 20€ à 35€ selon la distance.
+            Frais de livraison : <span className="text-primary font-medium">1,50â‚¬</span> â€” Minimum de commande de 20â‚¬ Ã  35â‚¬ selon la distance.
           </p>
         </div>
       </div>
@@ -83,3 +83,4 @@ const Contact = () => (
 );
 
 export default Contact;
+

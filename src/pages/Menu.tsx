@@ -10,50 +10,59 @@ const Menu = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-32 flex items-center justify-center">
         <p className="text-muted-foreground">Chargement du menu...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16">
+    <div className="min-h-screen pt-32 pb-16">
       <div className="container mx-auto px-4">
         <h1 className="font-display text-5xl sm:text-6xl text-gradient text-center mb-8">Notre Menu</h1>
+        <section aria-labelledby="menu-local-heading" className="mx-auto mb-8 max-w-3xl">
+          <h2 id="menu-local-heading" className="sr-only">Menu local a Sonchamp</h2>
+          <p className="text-center text-sm text-muted-foreground">
+            Decouvrez nos pizzas, burgers, sandwichs et tacos prepares a Sonchamp, disponibles sur place, a emporter et en livraison.
+          </p>
+        </section>
 
         {/* Category tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12 sticky top-16 z-40 bg-background/90 backdrop-blur-md py-4">
-          {menu.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                setActiveCategory(cat.id);
-                document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeCat === cat.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-primary/20"
-              }`}
-            >
-              {cat.title}
-            </button>
-          ))}
-        </div>
+        <nav aria-label="Categories du menu" className="mb-12 sticky top-28 z-30 bg-background/90 backdrop-blur-md py-4">
+          <div className="flex flex-wrap justify-center gap-2">
+            {menu.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeCat === cat.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-primary/20"
+                }`}
+              >
+                {cat.title}
+              </button>
+            ))}
+          </div>
+        </nav>
 
         {/* Menu sections */}
         <div className="max-w-4xl mx-auto space-y-16">
           {menu.map((category) => (
-            <section key={category.id} id={category.id} className="scroll-mt-32">
-              <h2 className="font-display text-4xl text-gradient mb-2">{category.title}</h2>
+            <section key={category.id} id={category.id} className="scroll-mt-48" aria-labelledby={`${category.id}-title`}>
+              <h2 id={`${category.id}-title`} className="font-display text-4xl text-gradient mb-2">{category.title}</h2>
               {category.subtitle && (
                 <p className="text-sm text-muted-foreground mb-6">{category.subtitle}</p>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list" aria-label={`Produits ${category.title}`}>
                 {category.items.map((item) => (
-                  <div
+                  <article
                     key={item.name}
+                    role="listitem"
                     className="bg-card rounded-xl overflow-hidden hover:card-glow transition-shadow border border-border/50"
                   >
                     {item.imageUrl && (
@@ -82,7 +91,7 @@ const Menu = () => {
                         {item.description}
                       </p>
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
             </section>
