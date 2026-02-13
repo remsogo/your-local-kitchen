@@ -42,7 +42,7 @@ const Contact = () => (
         <div className="bg-card rounded-xl overflow-hidden card-glow">
           <iframe
             title="Localisation Pizz'Atiq"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2638.5!2d1.8614!3d48.5818!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDjCsDM0JzU0LjUiTiAxwrA1MScxNy4wIkU!5e0!3m2!1sfr!2sfr!4v1234567890"
+            src="https://maps.google.com/maps?q=58%20Rue%20Andr%C3%A9%20Thome%2C%2078120%20Sonchamp&t=&z=16&ie=UTF8&iwloc=&output=embed"
             width="100%"
             height="300"
             style={{ border: 0 }}
