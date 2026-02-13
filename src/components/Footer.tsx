@@ -1,10 +1,6 @@
 import { Link } from "react-router-dom";
-import { MapPin, Clock, Phone } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import { restaurantInfo } from "@/data/menuData";
-
-const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
-  .map((n) => n.trim())
-  .filter(Boolean);
 
 const Footer = () => (
   <footer className="bg-secondary border-t border-border py-12">
@@ -17,20 +13,7 @@ const Footer = () => (
         </div>
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Clock size={16} className="shrink-0 text-primary" />
-          <span>10:30–14:30 / 18:00–22:00</span>
-        </div>
-        <div className="mt-3 flex flex-col gap-2">
-          {phoneNumbers.map((phone) => (
-            <a
-              key={phone}
-              href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              aria-label={`Appeler ${restaurantInfo.name}`}
-            >
-              <Phone size={16} />
-              {phone}
-            </a>
-          ))}
+          <span>10:30-14:30 / 18:00-22:00</span>
         </div>
       </div>
 
@@ -40,7 +23,7 @@ const Footer = () => (
           <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Accueil</Link>
           <Link to="/menu" className="text-sm text-muted-foreground hover:text-primary transition-colors">Menu</Link>
           <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link>
-          <Link to="/mentions-legales" className="text-sm text-muted-foreground hover:text-primary transition-colors">Mentions légales</Link>
+          <Link to="/mentions-legales" className="text-sm text-muted-foreground hover:text-primary transition-colors">Mentions legales</Link>
         </div>
       </div>
 
@@ -50,16 +33,16 @@ const Footer = () => (
           Livraison disponible dans un rayon de 20 km autour de Sonchamp.
         </p>
         <p className="text-sm text-muted-foreground mt-2">
-          Frais de livraison : 1,50€
+          Frais de livraison : 1,50EUR
         </p>
         <p className="text-sm text-muted-foreground mt-1">
-          Horaires : 11:00–14:30 / 18:00–22:00
+          Horaires : 11:00-14:30 / 18:00-22:00
         </p>
       </div>
     </div>
 
     <div className="container mx-auto px-4 mt-8 pt-8 border-t border-border text-center text-xs text-muted-foreground">
-      © {new Date().getFullYear()} Pizz'Atiq — Tous droits réservés
+      Copyright {new Date().getFullYear()} Pizz'Atiq - Tous droits reserves
     </div>
   </footer>
 );

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Phone, X } from "lucide-react";
-import { restaurantInfo } from "@/data/menuData";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { to: "/", label: "Accueil" },
@@ -13,9 +12,6 @@ const navLinks = [
 const Header = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""].map((n) => n.trim()).filter(Boolean);
-  const primaryPhone = phoneNumbers[0];
-  const primaryPhoneHref = primaryPhone ? `tel:${primaryPhone.replace(/[^\d+]/g, "")}` : "";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
@@ -37,16 +33,6 @@ const Header = () => {
               {link.label}
             </Link>
           ))}
-          {primaryPhone && (
-            <a
-              href={primaryPhoneHref}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              aria-label={`Appeler ${restaurantInfo.name}`}
-            >
-              <Phone size={16} />
-              Appeler
-            </a>
-          )}
         </nav>
 
         {/* Mobile toggle */}
@@ -73,17 +59,6 @@ const Header = () => {
             >
               {link.label}
             </Link>
-          ))}
-          {phoneNumbers.map((phone) => (
-            <a
-              key={phone}
-              href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-              onClick={() => setOpen(false)}
-              className="block px-6 py-3 text-sm font-semibold text-primary hover:bg-secondary transition-colors"
-              aria-label={`Appeler ${restaurantInfo.name}`}
-            >
-              Appeler: {phone}
-            </a>
           ))}
         </nav>
       )}
