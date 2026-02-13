@@ -1,4 +1,4 @@
-import { MapPin, Clock, Phone, Globe } from "lucide-react";
+﻿import { MapPin, Clock, Phone, Globe } from "lucide-react";
 import { restaurantInfo, deliveryHours } from "@/data/menuData";
 
 const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
@@ -20,7 +20,7 @@ const Contact = () => (
             </div>
             <div className="flex items-center gap-3 text-muted-foreground">
               <Clock size={18} className="text-primary shrink-0" />
-              <span>10:30â€“14:30 / 18:00â€“22:00 (tous les jours)</span>
+              <span>10:30-14:30 / 18:00-22:00 (tous les jours)</span>
             </div>
             {phoneNumbers.map((phone) => (
               <div key={phone} className="flex items-center gap-3 text-muted-foreground">
@@ -68,13 +68,13 @@ const Contact = () => (
             ))}
           </div>
           <p className="text-muted-foreground text-sm">
-            Nous livrons dans toutes les villes Ã  20 km ou moins de Sonchamp.
+            Nous livrons dans toutes les villes a 20 km ou moins de Sonchamp.
           </p>
           <p className="text-muted-foreground text-sm mt-2">
             Horaires de livraison : <span className="text-foreground font-medium">{deliveryHours}</span>
           </p>
           <p className="text-muted-foreground text-sm mt-2">
-            Frais de livraison : <span className="text-primary font-medium">1,50â‚¬</span> â€” Minimum de commande de 20â‚¬ Ã  35â‚¬ selon la distance.
+            Frais de livraison : <span className="text-primary font-medium">1,50EUR</span> - Minimum de commande de 20EUR a 35EUR selon la distance.
           </p>
         </div>
       </div>
@@ -83,4 +83,3 @@ const Contact = () => (
 );
 
 export default Contact;
-
