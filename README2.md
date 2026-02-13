@@ -63,10 +63,10 @@ Ces valeurs sont configurees dans GitHub pour le build/deploy.
 - Valeur a copier: `anon public` key.
 - Ou la mettre dans GitHub: repository > **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
 
-### 3) `VITE_CLOUDFLARE_BEACON_TOKEN` (secret GitHub, optionnel)
+### 3) `VITE_GA_MEASUREMENT_ID` (secret GitHub, optionnel)
 
-- Ou la trouver: Cloudflare > **Web Analytics** > votre site > **Install / JavaScript snippet**.
-- Valeur a copier: `token` du beacon.
+- Ou la trouver: Google Analytics (GA4) > **Admin** > **Data Streams** > selectionner le flux Web.
+- Valeur a copier: `Measurement ID` (format `G-XXXXXXXXXX`).
 - Ou la mettre dans GitHub: repository > **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
 
 ### 4) `VITE_PIZZERIA_PHONE` (variable GitHub, pas secret)

@@ -23,7 +23,7 @@ Create `.env` from `.env.example`:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_PIZZERIA_PHONE` (display format, ex: `06 12 34 56 78`)
-- `VITE_CLOUDFLARE_BEACON_TOKEN` (optional, Cloudflare Web Analytics)
+- `VITE_GA_MEASUREMENT_ID` (optional, Google Analytics 4)
 
 ## GitHub Pages deploy
 
@@ -43,7 +43,7 @@ Already configured:
 1. Add repository secrets:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_CLOUDFLARE_BEACON_TOKEN` (optional)
+   - `VITE_GA_MEASUREMENT_ID` (optional)
 2. Add repository variable:
    - `VITE_PIZZERIA_PHONE`
 3. Push to `main`.
