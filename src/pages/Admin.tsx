@@ -141,12 +141,12 @@ const Admin = () => {
             onClick={handleLogout}
             className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-lg px-4 py-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"
           >
-            <LogOut size={16} /> DÃ©connexion
+            <LogOut size={16} /> Deconnexion
           </button>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mb-12">
-          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistrÃ©s dans la base de donnÃ©es.
+          Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistres dans la base de donnees.
         </p>
 
         {/* Editing modal */}

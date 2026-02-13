@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
@@ -6,7 +6,7 @@ const navLinks = [
   { to: "/", label: "Accueil" },
   { to: "/menu", label: "Menu" },
   { to: "/contact", label: "Contact" },
-  { to: "/mentions-legales", label: "Mentions légales" },
+  { to: "/mentions-legales", label: "Mentions legales" },
 ];
 
 const Header = () => {
@@ -20,7 +20,6 @@ const Header = () => {
           Pizz'Atiq
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
@@ -35,7 +34,6 @@ const Header = () => {
           ))}
         </nav>
 
-        {/* Mobile toggle */}
         <button
           className="md:hidden text-foreground"
           onClick={() => setOpen(!open)}
@@ -45,7 +43,6 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <nav className="md:hidden bg-background border-b border-border">
           {navLinks.map((link) => (

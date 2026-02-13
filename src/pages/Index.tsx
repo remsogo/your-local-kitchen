@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Clock, MapPin, Truck, ChevronRight } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import { openingHours, deliveryZones, deliveryHours } from "@/data/menuData";
@@ -17,7 +17,7 @@ const Index = () => {
           <p className="mx-auto mb-4 max-w-3xl rounded-lg border border-border/70 bg-background/40 px-4 py-3 text-sm text-foreground sm:text-base">
             OFFRES PIZZA (du lundi au jeudi) : 1 pizza achetee = la 2eme a -50% / 2 pizzas achetees = la 3eme offerte (a emporter seulement).
           </p>
-          <p className="mb-2 text-lg text-foreground/80 sm:text-xl">Pizza • Burger • Sandwich • Tacos</p>
+          <p className="mb-2 text-lg text-foreground/80 sm:text-xl">Pizza - Burger - Sandwich - Tacos</p>
           <p className="mb-8 text-sm text-muted-foreground">58 Rue Andre Thome, 78120 Sonchamp</p>
 
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
