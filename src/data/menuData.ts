@@ -154,6 +154,7 @@ export const restaurantInfo = {
   name: "Pizz'Atiq",
   address: "58 Rue André Thome",
   city: "78120 Sonchamp",
-  phone: "",
+  phone: "06.84.06.93.85",
+  secondaryPhone: "01.34.84.93.46",
   website: "pizz-atiq.fr",
 };

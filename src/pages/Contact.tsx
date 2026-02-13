@@ -1,6 +1,10 @@
 import { MapPin, Clock, Phone, Globe } from "lucide-react";
 import { restaurantInfo, deliveryHours } from "@/data/menuData";
 
+const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
+  .map((n) => n.trim())
+  .filter(Boolean);
+
 const Contact = () => (
   <div className="min-h-screen pt-20 pb-16">
     <div className="container mx-auto px-4 max-w-2xl">
@@ -18,6 +22,14 @@ const Contact = () => (
               <Clock size={18} className="text-primary shrink-0" />
               <span>10:30–14:30 / 18:00–22:00 (tous les jours)</span>
             </div>
+            {phoneNumbers.map((phone) => (
+              <div key={phone} className="flex items-center gap-3 text-muted-foreground">
+                <Phone size={18} className="text-primary shrink-0" />
+                <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="hover:text-primary transition-colors font-medium">
+                  {phone}
+                </a>
+              </div>
+            ))}
             <div className="flex items-center gap-3 text-muted-foreground">
               <Globe size={18} className="text-primary shrink-0" />
               <a href={`https://${restaurantInfo.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
@@ -27,7 +39,6 @@ const Contact = () => (
           </div>
         </div>
 
-        {/* Map embed */}
         <div className="bg-card rounded-xl overflow-hidden card-glow">
           <iframe
             title="Localisation Pizz'Atiq"
@@ -43,6 +54,19 @@ const Contact = () => (
 
         <div className="bg-card rounded-xl p-6 card-glow">
           <h2 className="font-display text-2xl text-foreground mb-4">Livraison</h2>
+          <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-3">
+            {phoneNumbers.map((phone) => (
+              <a
+                key={phone}
+                href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                aria-label={`Appeler ${restaurantInfo.name}`}
+              >
+                <Phone size={16} />
+                Commander : {phone}
+              </a>
+            ))}
+          </div>
           <p className="text-muted-foreground text-sm">
             Nous livrons dans toutes les villes à 20 km ou moins de Sonchamp.
           </p>

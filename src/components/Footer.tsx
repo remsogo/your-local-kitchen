@@ -2,6 +2,10 @@ import { Link } from "react-router-dom";
 import { MapPin, Clock, Phone } from "lucide-react";
 import { restaurantInfo } from "@/data/menuData";
 
+const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
+  .map((n) => n.trim())
+  .filter(Boolean);
+
 const Footer = () => (
   <footer className="bg-secondary border-t border-border py-12">
     <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -14,6 +18,19 @@ const Footer = () => (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Clock size={16} className="shrink-0 text-primary" />
           <span>10:30–14:30 / 18:00–22:00</span>
+        </div>
+        <div className="mt-3 flex flex-col gap-2">
+          {phoneNumbers.map((phone) => (
+            <a
+              key={phone}
+              href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              aria-label={`Appeler ${restaurantInfo.name}`}
+            >
+              <Phone size={16} />
+              {phone}
+            </a>
+          ))}
         </div>
       </div>
 

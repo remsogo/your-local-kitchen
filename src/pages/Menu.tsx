@@ -64,21 +64,23 @@ const Menu = () => {
                         loading="lazy"
                       />
                     )}
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-foreground text-lg">{item.name}</h3>
-                        <div className="flex gap-2 shrink-0">
-                          {item.prices.map((p) => (
-                            <span
-                              key={p.label + p.price}
-                              className="bg-price text-price-foreground text-xs font-bold px-2 py-1 rounded"
-                            >
-                              {p.label ? `${p.label} ` : ""}{p.price}
-                            </span>
-                          ))}
-                        </div>
+                    <div className="relative min-h-[150px] p-4 pt-14 sm:min-h-[165px] sm:pt-16">
+                      <div className="absolute top-3 right-3 flex max-w-[72%] flex-wrap justify-end gap-2">
+                        {item.prices.map((p) => (
+                          <span
+                            key={p.label + p.price}
+                            className="bg-price text-price-foreground text-xs font-bold px-2 py-1 rounded"
+                          >
+                            {p.label ? `${p.label} ` : ""}{p.price}
+                          </span>
+                        ))}
                       </div>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                      <h3 className="mt-2 text-center font-semibold text-foreground text-lg leading-tight sm:mt-4">
+                        {item.name}
+                      </h3>
+                      <p className="mt-2 text-center text-sm text-muted-foreground">
+                        {item.description}
+                      </p>
                     </div>
                   </div>
                 ))}

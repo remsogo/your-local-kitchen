@@ -1,51 +1,54 @@
 # Your Local Kitchen
 
-Application React + Vite (TypeScript) prête à être publiée sur GitHub Pages.
+Application React + Vite (TypeScript) deployable on GitHub Pages.
 
-## Prérequis
+## Prerequisites
 
 - Node.js 20+
 - npm
 
-## Installation locale
+## Local setup
 
 ```sh
 npm install
 cp .env.example .env
-# puis renseigner les vraies valeurs Supabase dans .env
+# then fill .env values
 npm run dev
 ```
 
-## Variables d'environnement
+## Environment variables
 
-Créer un fichier `.env` à partir de `.env.example` :
+Create `.env` from `.env.example`:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_PIZZERIA_PHONE` (display format, ex: `06 12 34 56 78`)
+- `VITE_CLOUDFLARE_BEACON_TOKEN` (optional, Cloudflare Web Analytics)
 
-## Déploiement GitHub Pages (classique)
+## GitHub Pages deploy
 
-Le projet est configuré pour un déploiement de type **project pages** sur :
+This project is configured for project pages:
 
 `https://<username>.github.io/your-local-kitchen/`
 
-Points déjà configurés :
+Already configured:
 
-- `HashRouter` pour éviter les erreurs 404 côté GitHub Pages
-- `base` Vite sur `/your-local-kitchen/` en production
-- workflow GitHub Actions `.github/workflows/deploy.yml`
+- `HashRouter` to avoid 404 on refresh
+- Vite `base` set to `/your-local-kitchen/` in production
+- GitHub Actions workflow: `.github/workflows/deploy.yml`
 
-### Étapes GitHub
+### GitHub steps
 
-1. Créer les secrets repository :
+1. Add repository secrets:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-2. Push sur `main`.
-3. Dans **Settings > Pages** : Source = **GitHub Actions**.
-4. Vérifier le run du workflow **Deploy to GitHub Pages**.
+   - `VITE_CLOUDFLARE_BEACON_TOKEN` (optional)
+2. Add repository variable:
+   - `VITE_PIZZERIA_PHONE`
+3. Push to `main`.
+4. In **Settings > Pages** set Source to **GitHub Actions**.
+5. Check workflow run: **Deploy to GitHub Pages**.
 
-## Domaine personnalisé
+## Custom domain
 
-Pas encore activé dans ce repo.
-
-Quand vous aurez le domaine, on ajoutera `public/CNAME` et la configuration DNS.
+Not configured yet. Add `public/CNAME` and DNS records when ready.

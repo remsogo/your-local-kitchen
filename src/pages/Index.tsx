@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
-import { Clock, MapPin, Truck, ChevronRight } from "lucide-react";
+import { Clock, MapPin, Truck, ChevronRight, Phone } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
-import { openingHours, deliveryZones, deliveryHours } from "@/data/menuData";
+import { openingHours, deliveryZones, deliveryHours, restaurantInfo } from "@/data/menuData";
 
 const Index = () => {
+  const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
+    .map((n) => n.trim())
+    .filter(Boolean);
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -12,12 +16,33 @@ const Index = () => {
         <div className="absolute inset-0 hero-overlay" />
         <div className="relative z-10 text-center px-4 animate-fade-in">
           <h1 className="font-display text-6xl sm:text-8xl text-gradient mb-4">Pizz'Atiq</h1>
+          <div className="mb-4 inline-flex items-center rounded-full border border-primary/40 bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+            Promo lun-jeu
+          </div>
+          <p className="mx-auto mb-4 max-w-3xl rounded-lg border border-border/70 bg-background/40 px-4 py-3 text-sm sm:text-base text-foreground">
+            OFFRES PIZZA (du lundi au jeudi) : 1 pizza achetée = la 2ème à -50% / 2 pizzas achetées = la 3ème offerte (à emporter seulement).
+          </p>
           <p className="text-lg sm:text-xl text-foreground/80 mb-2">Pizza • Burger • Sandwich • Tacos</p>
           <p className="text-sm text-muted-foreground mb-8">58 Rue André Thome, 78120 Sonchamp</p>
+
+          <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
+            {phoneNumbers.map((phone) => (
+              <a
+                key={phone}
+                href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold text-base hover:opacity-90 transition-opacity"
+                aria-label={`Appeler ${restaurantInfo.name}`}
+              >
+                <Phone size={18} />
+                Commander : {phone}
+              </a>
+            ))}
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/menu"
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 border border-border text-foreground px-8 py-3 rounded-lg font-semibold text-lg hover:bg-secondary transition-colors"
             >
               Voir le menu <ChevronRight size={20} />
             </Link>
