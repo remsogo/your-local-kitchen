@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MenuItem } from "@/data/menuData";
-import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut } from "lucide-react";
+import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, FolderPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMenu } from "@/hooks/useMenu";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -12,7 +12,24 @@ const Admin = () => {
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [creatingItem, setCreatingItem] = useState(false);
+  const [newCategoryTitle, setNewCategoryTitle] = useState("");
+  const [newCategorySubtitle, setNewCategorySubtitle] = useState("");
+  const [newItemCategoryId, setNewItemCategoryId] = useState("");
+  const [newItemForm, setNewItemForm] = useState<MenuItem>({
+    name: "",
+    description: "",
+    imageUrl: "",
+    prices: [{ label: "", price: "" }],
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!newItemCategoryId && menu.length > 0) {
+      setNewItemCategoryId(menu[0].id);
+    }
+  }, [menu, newItemCategoryId]);
 
   const startEdit = (catId: string, itemIdx: number) => {
     const cat = menu.find((c) => c.id === catId)!;
@@ -56,6 +73,69 @@ const Admin = () => {
     if (!item.dbId) return;
     await supabase.from("menu_items").delete().eq("id", item.dbId);
     await refetch();
+  };
+
+  const createCategory = async () => {
+    const title = newCategoryTitle.trim();
+    if (!title) return;
+    setCreatingCategory(true);
+    try {
+      await supabase.from("menu_categories").insert({
+        title,
+        subtitle: newCategorySubtitle.trim() || null,
+        sort_order: menu.length,
+      });
+      setNewCategoryTitle("");
+      setNewCategorySubtitle("");
+      await refetch();
+    } catch (err) {
+      console.error("Error creating category:", err);
+      alert("Impossible de creer la categorie.");
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
+
+  const createItem = async () => {
+    if (!newItemCategoryId) return;
+    const name = newItemForm.name.trim();
+    if (!name) return;
+    const cleanPrices = newItemForm.prices
+      .map((p) => ({ label: p.label.trim(), price: p.price.trim() }))
+      .filter((p) => p.price);
+    if (cleanPrices.length === 0) return;
+
+    setCreatingItem(true);
+    try {
+      const sortOrder = menu.find((c) => c.id === newItemCategoryId)?.items.length ?? 0;
+      const { data: insertedItem, error: itemError } = await supabase
+        .from("menu_items")
+        .insert({
+          category_id: newItemCategoryId,
+          name,
+          description: newItemForm.description.trim(),
+          image_url: newItemForm.imageUrl?.trim() || null,
+          sort_order: sortOrder,
+        })
+        .select("id")
+        .single();
+
+      if (itemError || !insertedItem?.id) throw itemError || new Error("Insert item failed");
+
+      const { error: pricesError } = await supabase
+        .from("menu_item_prices")
+        .insert(cleanPrices.map((p, i) => ({ item_id: insertedItem.id, label: p.label, price: p.price, sort_order: i })));
+
+      if (pricesError) throw pricesError;
+
+      setNewItemForm({ name: "", description: "", imageUrl: "", prices: [{ label: "", price: "" }] });
+      await refetch();
+    } catch (err) {
+      console.error("Error creating item:", err);
+      alert("Impossible de creer le produit.");
+    } finally {
+      setCreatingItem(false);
+    }
   };
 
   const handleImageUpload = async (file: File) => {
@@ -148,6 +228,129 @@ const Admin = () => {
         <p className="text-center text-sm text-muted-foreground mb-12">
           Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistres dans la base de donnees.
         </p>
+
+        <div className="mb-10 grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-border/60 bg-card p-4 card-glow">
+            <h2 className="mb-3 flex items-center gap-2 font-display text-2xl text-foreground">
+              <FolderPlus size={18} className="text-primary" />
+              Ajouter une categorie
+            </h2>
+            <div className="space-y-2">
+              <input
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Nom de categorie"
+                value={newCategoryTitle}
+                onChange={(e) => setNewCategoryTitle(e.target.value)}
+              />
+              <input
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Sous-titre (optionnel)"
+                value={newCategorySubtitle}
+                onChange={(e) => setNewCategorySubtitle(e.target.value)}
+              />
+              <button
+                onClick={createCategory}
+                disabled={creatingCategory || !newCategoryTitle.trim()}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                <Plus size={14} />
+                {creatingCategory ? "Creation..." : "Creer la categorie"}
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/60 bg-card p-4 card-glow">
+            <h2 className="mb-3 flex items-center gap-2 font-display text-2xl text-foreground">
+              <Plus size={18} className="text-primary" />
+              Ajouter un produit
+            </h2>
+            <div className="space-y-2">
+              <select
+                value={newItemCategoryId}
+                onChange={(e) => setNewItemCategoryId(e.target.value)}
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {menu.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.title}</option>
+                ))}
+              </select>
+              <input
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Nom du produit"
+                value={newItemForm.name}
+                onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
+              />
+              <input
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Description"
+                value={newItemForm.description}
+                onChange={(e) => setNewItemForm({ ...newItemForm, description: e.target.value })}
+              />
+              <input
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="URL image (optionnel)"
+                value={newItemForm.imageUrl || ""}
+                onChange={(e) => setNewItemForm({ ...newItemForm, imageUrl: e.target.value })}
+              />
+
+              <div className="space-y-2">
+                {newItemForm.prices.map((p, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      className="w-1/3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Label"
+                      value={p.label}
+                      onChange={(e) => {
+                        const prices = [...newItemForm.prices];
+                        prices[i] = { ...prices[i], label: e.target.value };
+                        setNewItemForm({ ...newItemForm, prices });
+                      }}
+                    />
+                    <input
+                      className="w-2/3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Prix"
+                      value={p.price}
+                      onChange={(e) => {
+                        const prices = [...newItemForm.prices];
+                        prices[i] = { ...prices[i], price: e.target.value };
+                        setNewItemForm({ ...newItemForm, prices });
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newItemForm.prices.length === 1) return;
+                        const prices = newItemForm.prices.filter((_, idx) => idx !== i);
+                        setNewItemForm({ ...newItemForm, prices });
+                      }}
+                      className="rounded-lg border border-border bg-secondary px-2 text-foreground hover:bg-destructive hover:text-destructive-foreground"
+                      aria-label="Retirer la ligne de prix"
+                    >
+                      <Minus size={14} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setNewItemForm({ ...newItemForm, prices: [...newItemForm.prices, { label: "", price: "" }] })}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  <Plus size={12} />
+                  Ajouter une ligne de prix
+                </button>
+              </div>
+
+              <button
+                onClick={createItem}
+                disabled={creatingItem || !newItemForm.name.trim()}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                <Plus size={14} />
+                {creatingItem ? "Creation..." : "Creer le produit"}
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Editing modal */}
         {editingItem && (
