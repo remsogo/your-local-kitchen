@@ -81,6 +81,7 @@ const Admin = () => {
     setCreatingCategory(true);
     try {
       await supabase.from("menu_categories").insert({
+        id: crypto.randomUUID(),
         title,
         subtitle: newCategorySubtitle.trim() || null,
         sort_order: menu.length,
