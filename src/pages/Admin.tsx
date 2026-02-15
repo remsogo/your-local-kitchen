@@ -4,6 +4,7 @@ import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, Folde
 import { supabase } from "@/integrations/supabase/client";
 import { useMenu } from "@/hooks/useMenu";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { createCategoryPayload, createItemPayload, sanitizePrices, toSupabaseErrorMessage } from "@/lib/adminMenu";
 
 const Admin = () => {
   const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
@@ -14,6 +15,7 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [creatingItem, setCreatingItem] = useState(false);
+  const [adminMessage, setAdminMessage] = useState<string>("");
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [newCategorySubtitle, setNewCategorySubtitle] = useState("");
   const [newItemCategoryId, setNewItemCategoryId] = useState("");
@@ -35,89 +37,127 @@ const Admin = () => {
     const cat = menu.find((c) => c.id === catId)!;
     setEditingItem({ catId, itemIdx });
     setEditForm({ ...cat.items[itemIdx] });
+    setAdminMessage("");
   };
 
   const saveEdit = async () => {
-    if (!editingItem) return;
+    if (!editingItem) {
+      setAdminMessage("Aucun produit en cours de modification.");
+      return;
+    }
     setSaving(true);
+    setAdminMessage("");
     try {
       const item = menu.find(c => c.id === editingItem.catId)!.items[editingItem.itemIdx];
       const dbId = item.dbId;
-      if (!dbId) return;
+      if (!dbId) {
+        setAdminMessage("Produit invalide: identifiant manquant.");
+        return;
+      }
 
       // Update item
-      await supabase
+      const { error: updateError } = await supabase
         .from("menu_items")
         .update({ name: editForm.name, description: editForm.description, image_url: editForm.imageUrl || null })
         .eq("id", dbId);
+      if (updateError) throw updateError;
 
       // Delete old prices and insert new ones
-      await supabase.from("menu_item_prices").delete().eq("item_id", dbId);
+      const { error: deletePricesError } = await supabase.from("menu_item_prices").delete().eq("item_id", dbId);
+      if (deletePricesError) throw deletePricesError;
       if (editForm.prices.length > 0) {
-        await supabase.from("menu_item_prices").insert(
+        const { error: insertPricesError } = await supabase.from("menu_item_prices").insert(
           editForm.prices.map((p, i) => ({ item_id: dbId, label: p.label, price: p.price, sort_order: i }))
         );
+        if (insertPricesError) throw insertPricesError;
       }
 
       await refetch();
       setEditingItem(null);
+      setAdminMessage("Produit mis a jour.");
     } catch (err) {
-      console.error("Error saving:", err);
+      const message = toSupabaseErrorMessage(err, "Impossible de sauvegarder le produit.");
+      console.error("[Admin] saveEdit failed", err);
+      setAdminMessage(`Erreur sauvegarde: ${message}`);
+      alert(`Impossible de sauvegarder le produit: ${message}`);
     } finally {
       setSaving(false);
     }
   };
 
   const deleteItem = async (catId: string, itemIdx: number) => {
-    const item = menu.find(c => c.id === catId)!.items[itemIdx];
-    if (!item.dbId) return;
-    await supabase.from("menu_items").delete().eq("id", item.dbId);
-    await refetch();
+    setAdminMessage("");
+    try {
+      const item = menu.find(c => c.id === catId)!.items[itemIdx];
+      if (!item.dbId) {
+        setAdminMessage("Suppression impossible: identifiant produit manquant.");
+        return;
+      }
+      const { error } = await supabase.from("menu_items").delete().eq("id", item.dbId);
+      if (error) throw error;
+      await refetch();
+      setAdminMessage("Produit supprime.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible de supprimer le produit.");
+      console.error("[Admin] deleteItem failed", err);
+      setAdminMessage(`Erreur suppression: ${message}`);
+      alert(`Impossible de supprimer le produit: ${message}`);
+    }
   };
 
   const createCategory = async () => {
     const title = newCategoryTitle.trim();
-    if (!title) return;
+    if (!title) {
+      setAdminMessage("Le nom de categorie est requis.");
+      return;
+    }
     setCreatingCategory(true);
+    setAdminMessage("");
     try {
-      await supabase.from("menu_categories").insert({
-        id: crypto.randomUUID(),
-        title,
-        subtitle: newCategorySubtitle.trim() || null,
-        sort_order: menu.length,
-      });
+      const payload = createCategoryPayload(title, newCategorySubtitle, menu.length);
+      console.info("[Admin] createCategory payload", payload);
+      const { error } = await supabase.from("menu_categories").insert(payload);
+      if (error) throw error;
       setNewCategoryTitle("");
       setNewCategorySubtitle("");
       await refetch();
+      setAdminMessage("Categorie creee.");
     } catch (err) {
-      console.error("Error creating category:", err);
-      alert("Impossible de creer la categorie.");
+      const message = toSupabaseErrorMessage(err, "Impossible de creer la categorie.");
+      console.error("[Admin] createCategory failed", err);
+      setAdminMessage(`Erreur categorie: ${message}`);
+      alert(`Impossible de creer la categorie: ${message}`);
     } finally {
       setCreatingCategory(false);
     }
   };
 
   const createItem = async () => {
-    if (!newItemCategoryId) return;
+    if (!newItemCategoryId) {
+      setAdminMessage("Choisissez une categorie.");
+      return;
+    }
     const name = newItemForm.name.trim();
-    if (!name) return;
-    const cleanPrices = newItemForm.prices
-      .map((p) => ({ label: p.label.trim(), price: p.price.trim() }))
-      .filter((p) => p.price);
-    if (cleanPrices.length === 0) return;
+    if (!name) {
+      setAdminMessage("Le nom du produit est requis.");
+      return;
+    }
+    const cleanPrices = sanitizePrices(newItemForm.prices);
+    if (cleanPrices.length === 0) {
+      setAdminMessage("Ajoutez au moins un prix valide.");
+      return;
+    }
 
     setCreatingItem(true);
+    setAdminMessage("");
     try {
       const sortOrder = menu.find((c) => c.id === newItemCategoryId)?.items.length ?? 0;
+      const itemPayload = createItemPayload(newItemCategoryId, newItemForm, sortOrder);
+      console.info("[Admin] createItem payload", itemPayload);
+      console.info("[Admin] createItem prices", cleanPrices);
       const { data: insertedItem, error: itemError } = await supabase
         .from("menu_items")
-        .insert({
-          category_id: newItemCategoryId,
-          name,
-          description: newItemForm.description.trim(),
-          image_url: newItemForm.imageUrl?.trim() || null,
-          sort_order: sortOrder,
-        })
+        .insert(itemPayload)
         .select("id")
         .single();
 
@@ -131,9 +171,12 @@ const Admin = () => {
 
       setNewItemForm({ name: "", description: "", imageUrl: "", prices: [{ label: "", price: "" }] });
       await refetch();
+      setAdminMessage("Produit cree.");
     } catch (err) {
-      console.error("Error creating item:", err);
-      alert("Impossible de creer le produit.");
+      const message = toSupabaseErrorMessage(err, "Impossible de creer le produit.");
+      console.error("[Admin] createItem failed", err);
+      setAdminMessage(`Erreur produit: ${message}`);
+      alert(`Impossible de creer le produit: ${message}`);
     } finally {
       setCreatingItem(false);
     }
@@ -141,6 +184,7 @@ const Admin = () => {
 
   const handleImageUpload = async (file: File) => {
     setUploading(true);
+    setAdminMessage("");
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -151,6 +195,8 @@ const Admin = () => {
         .upload(filePath, file);
 
       if (uploadError) {
+        console.error("[Admin] upload image failed", uploadError);
+        setAdminMessage(`Erreur upload image: ${uploadError.message}`);
         alert("Erreur upload : " + uploadError.message);
         return;
       }
@@ -160,8 +206,12 @@ const Admin = () => {
         .getPublicUrl(filePath);
 
       setEditForm({ ...editForm, imageUrl: data.publicUrl });
+      setAdminMessage("Image envoyee avec succes.");
     } catch (err) {
-      alert("Erreur lors de l'upload");
+      const message = toSupabaseErrorMessage(err, "Erreur lors de l'upload");
+      console.error("[Admin] handleImageUpload failed", err);
+      setAdminMessage(`Erreur upload image: ${message}`);
+      alert(message);
     } finally {
       setUploading(false);
     }
@@ -229,6 +279,11 @@ const Admin = () => {
         <p className="text-center text-sm text-muted-foreground mb-12">
           Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistres dans la base de donnees.
         </p>
+        {adminMessage && (
+          <p className="mb-6 rounded-lg border border-border/60 bg-card px-4 py-3 text-sm text-foreground">
+            {adminMessage}
+          </p>
+        )}
 
         <div className="mb-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-card p-4 card-glow">
