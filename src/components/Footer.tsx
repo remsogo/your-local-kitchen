@@ -1,12 +1,20 @@
 import { Link } from "react-router-dom";
 import { MapPin, Clock } from "lucide-react";
 import { restaurantInfo } from "@/data/menuData";
+import logoPizzatiq from "@/assets/logo_pizzatiq.jpg";
 
 const Footer = () => (
   <footer className="bg-secondary border-t border-border py-12">
     <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
       <div>
-        <h3 className="font-display text-2xl text-gradient mb-4">Pizz'Atiq</h3>
+        <div className="mb-4 inline-flex items-center gap-2">
+          <img
+            src={logoPizzatiq}
+            alt="Logo Pizz'Atiq"
+            className="h-8 w-8 rounded-md object-cover"
+          />
+          <h3 className="font-display text-2xl text-gradient">Pizz'Atiq</h3>
+        </div>
         <div className="flex items-start gap-2 text-muted-foreground text-sm mb-2">
           <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
           <span>{restaurantInfo.address}, {restaurantInfo.city}</span>

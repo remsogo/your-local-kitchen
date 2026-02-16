@@ -1,6 +1,7 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import logoPizzatiq from "@/assets/logo_pizzatiq.jpg";
 
 const navLinks = [
   { to: "/", label: "Accueil" },
@@ -16,8 +17,13 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="font-display text-3xl text-gradient tracking-wider">
-          Pizz'Atiq
+        <Link to="/" className="inline-flex items-center gap-2">
+          <img
+            src={logoPizzatiq}
+            alt="Logo Pizz'Atiq"
+            className="h-9 w-9 rounded-md object-cover"
+          />
+          <span className="font-display text-3xl text-gradient tracking-wider">Pizz'Atiq</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
