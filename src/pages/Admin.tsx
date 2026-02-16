@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { MenuItem } from "@/data/menuData";
-import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, FolderPlus, ChevronUp, ChevronDown } from "lucide-react";
+import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, FolderPlus, ChevronUp, ChevronDown, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMenu } from "@/hooks/useMenu";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { createCategoryPayload, createItemPayload, sanitizePrices, toSupabaseErrorMessage } from "@/lib/adminMenu";
 import { useSauces } from "@/hooks/useSauces";
+import { useAnalyticsOverview } from "@/hooks/useAnalyticsOverview";
 
 const Admin = () => {
   const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
   const { menu, loading: menuLoading, refetch } = useMenu();
   const { sauces, error: saucesError, refetch: refetchSauces } = useSauces();
+  const { data: analytics, loading: analyticsLoading, error: analyticsError, refetch: refetchAnalytics } = useAnalyticsOverview();
   const [editingItem, setEditingItem] = useState<{ catId: string; itemIdx: number } | null>(null);
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
   const [uploading, setUploading] = useState(false);
@@ -286,6 +288,7 @@ const Admin = () => {
   };
 
   const moveSauce = async (id: string, direction: -1 | 1) => {
+    // Reorder by swapping sort_order with adjacent row to keep a stable manual ordering.
     const ordered = [...sauces].sort((a, b) => a.sort_order - b.sort_order);
     const index = ordered.findIndex((s) => s.id === id);
     const targetIndex = index + direction;
@@ -379,6 +382,89 @@ const Admin = () => {
             {adminMessage}
           </p>
         )}
+
+        <section className="mb-10 rounded-xl border border-border/60 bg-card p-4 card-glow" aria-labelledby="analytics-title">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 id="analytics-title" className="flex items-center gap-2 font-display text-2xl text-foreground">
+              <BarChart3 size={18} className="text-primary" />
+              Overview analytics (30 derniers jours)
+            </h2>
+            <button
+              type="button"
+              onClick={() => refetchAnalytics()}
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary"
+            >
+              Rafraichir
+            </button>
+          </div>
+          {analyticsLoading && <p className="text-sm text-muted-foreground">Chargement des stats...</p>}
+          {analyticsError && (
+            <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              Impossible de charger les stats: {analyticsError}
+            </p>
+          )}
+          {!analyticsLoading && !analyticsError && analytics && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-border/60 bg-secondary/40 p-3">
+                  <p className="text-xs text-muted-foreground">Impressions</p>
+                  <p className="text-xl font-semibold text-foreground">{analytics.totalImpressions}</p>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-secondary/40 p-3">
+                  <p className="text-xs text-muted-foreground">Clics</p>
+                  <p className="text-xl font-semibold text-foreground">{analytics.totalClicks}</p>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-secondary/40 p-3">
+                  <p className="text-xs text-muted-foreground">CTR</p>
+                  <p className="text-xl font-semibold text-foreground">{analytics.ctr.toFixed(1)}%</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-border/60 p-3">
+                  <h3 className="mb-2 text-sm font-semibold text-foreground">Par page</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-xs">
+                      <thead>
+                        <tr className="text-muted-foreground">
+                          <th className="pb-2 text-left font-medium">Page</th>
+                          <th className="pb-2 text-right font-medium">Impr.</th>
+                          <th className="pb-2 text-right font-medium">Clics</th>
+                          <th className="pb-2 text-right font-medium">Top recherche</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {analytics.pages.slice(0, 8).map((row) => (
+                          <tr key={row.page} className="border-t border-border/50">
+                            <td className="py-2 text-foreground">{row.page}</td>
+                            <td className="py-2 text-right text-foreground">{row.impressions}</td>
+                            <td className="py-2 text-right text-foreground">{row.clicks}</td>
+                            <td className="py-2 text-right text-muted-foreground">{row.topSearch}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border/60 p-3">
+                  <h3 className="mb-2 text-sm font-semibold text-foreground">Top interactions</h3>
+                  <ul className="space-y-2 text-xs">
+                    {analytics.topTargets.length === 0 && (
+                      <li className="text-muted-foreground">Aucun clic enregistre pour le moment.</li>
+                    )}
+                    {analytics.topTargets.map((target) => (
+                      <li key={target.target} className="flex items-center justify-between rounded bg-secondary/40 px-2 py-1.5">
+                        <span className="text-foreground">{target.target}</span>
+                        <span className="font-semibold text-primary">{target.clicks}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
         <div className="mb-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-card p-4 card-glow">

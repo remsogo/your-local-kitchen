@@ -8,6 +8,7 @@ const Menu = () => {
   const { sauces } = useSauces();
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [zoomImage, setZoomImage] = useState<{ src: string; alt: string } | null>(null);
+  // Fallback list keeps the UI usable if the sauces table is empty/unavailable.
   const sauceNames = sauces.filter((s) => s.is_active).map((s) => s.name.trim()).filter(Boolean);
   const displayedSauces = sauceNames.length > 0 ? sauceNames : defaultSauces;
 

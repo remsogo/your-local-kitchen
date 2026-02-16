@@ -1,7 +1,10 @@
 import { Phone } from "lucide-react";
 import { restaurantInfo } from "@/data/menuData";
+import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
+import { useLocation } from "react-router-dom";
 
 const StickyOrderBar = () => {
+  const location = useLocation();
   const phoneNumbers = [restaurantInfo.phone, restaurantInfo.secondaryPhone ?? ""]
     .map((n) => n.trim())
     .filter(Boolean);
@@ -15,6 +18,14 @@ const StickyOrderBar = () => {
           <a
             key={phone}
             href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+            // Track CTA phone taps to measure conversion intent from each page.
+            onClick={() =>
+              trackAnalyticsEvent({
+                event_type: "click",
+                page_path: location.pathname,
+                target: `sticky_order_call:${phone}`,
+              })
+            }
             className="inline-flex shrink-0 items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:text-sm"
             aria-label={`Commander au ${phone}`}
           >

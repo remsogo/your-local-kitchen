@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { extractSearchQuery, trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
 const SITE_URL = "https://pizzatiq.fr/";
 
@@ -66,6 +67,25 @@ const PageMeta = () => {
     upsertMeta("twitter:title", title);
     upsertMeta("twitter:description", description);
     upsertLink("canonical", canonicalUrl);
+
+    // SPA route changes are manual page_view events (HashRouter does not trigger full reloads).
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "page_view", {
+        page_title: title,
+        page_path: path,
+        page_location: canonicalUrl,
+      });
+    }
+
+    // Store source query when available so admin can see which searches drive page impressions.
+    const searchQuery = extractSearchQuery(document.referrer || "");
+    trackAnalyticsEvent({
+      event_type: "page_view",
+      page_path: path,
+      target: title,
+      search_query: searchQuery,
+      referrer: document.referrer || null,
+    });
   }, [location.pathname]);
 
   return null;

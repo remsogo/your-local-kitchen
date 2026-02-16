@@ -35,6 +35,7 @@ export const useSauces = () => {
       if (queryError) throw queryError;
       setSauces((data || []) as Sauce[]);
     } catch (err) {
+      // Do not throw from hook: callers handle empty state with a safe fallback list.
       const message = err instanceof Error ? err.message : "Erreur chargement sauces";
       console.error("[Sauces] fetch failed", err);
       setError(message);
@@ -50,4 +51,3 @@ export const useSauces = () => {
 
   return { sauces, loading, error, refetch: fetchSauces };
 };
-

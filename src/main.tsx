@@ -10,10 +10,13 @@ declare global {
 }
 
 const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
-if (gaMeasurementId) {
+const hasValidGaId = typeof gaMeasurementId === "string" && /^G-[A-Z0-9]+$/i.test(gaMeasurementId.trim());
+
+if (hasValidGaId) {
+  const measurementId = gaMeasurementId.trim();
   const script = document.createElement("script");
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
@@ -22,7 +25,11 @@ if (gaMeasurementId) {
   };
 
   window.gtag("js", new Date());
-  window.gtag("config", gaMeasurementId);
+  // We send page_view manually on each route change in PageMeta.
+  window.gtag("config", measurementId, { send_page_view: false });
+  console.info(`[Analytics] GA4 active (${measurementId})`);
+} else {
+  console.warn("[Analytics] GA4 disabled: set a valid VITE_GA_MEASUREMENT_ID (format G-XXXXXXXXXX).");
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
