@@ -24,16 +24,24 @@ export type AnalyticsOverview = {
   topTargets: Array<{ target: string; clicks: number }>;
 };
 
-export const buildAnalyticsOverview = (rows: RawEvent[]): AnalyticsOverview => {
+export type AnalyticsOverviewFilter = {
+  page?: string;
+};
+
+export const buildAnalyticsOverview = (rows: RawEvent[], filter: AnalyticsOverviewFilter = {}): AnalyticsOverview => {
   // Keep dashboard focused on customer behavior; back-office page is intentionally excluded.
   const customerRows = rows.filter((row) => (row.page_path || "/") !== "/admin");
+  const selectedPage = filter.page && filter.page !== "all" ? filter.page : null;
+  const filteredRows = selectedPage
+    ? customerRows.filter((row) => (row.page_path || "/") === selectedPage)
+    : customerRows;
   const viewsByPage = new Map<string, number>();
   const clicksByPage = new Map<string, number>();
   const searchByPage = new Map<string, Map<string, number>>();
   const clicksByTarget = new Map<string, number>();
 
   // Build aggregated counters client-side so this works without custom SQL views/RPC.
-  for (const row of customerRows) {
+  for (const row of filteredRows) {
     const page = row.page_path || "/";
     if (row.event_type === "page_view") {
       viewsByPage.set(page, (viewsByPage.get(page) || 0) + 1);
@@ -76,16 +84,24 @@ export const buildAnalyticsOverview = (rows: RawEvent[]): AnalyticsOverview => {
   return { totalImpressions, totalClicks, ctr, pages, topTargets };
 };
 
-export const useAnalyticsOverview = () => {
+type UseAnalyticsOverviewOptions = {
+  days?: number;
+  page?: string;
+};
+
+export const useAnalyticsOverview = (options: UseAnalyticsOverviewOptions = {}) => {
+  const days = options.days ?? 30;
+  const page = options.page ?? "all";
   const [data, setData] = useState<AnalyticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pageOptions, setPageOptions] = useState<string[]>([]);
 
   const fetchOverview = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
       const { data: events, error: queryError } = await supabase
         .from("analytics_events")
         .select("event_type,page_path,target,search_query,created_at")
@@ -96,7 +112,11 @@ export const useAnalyticsOverview = () => {
       if (queryError) throw queryError;
 
       const rows = (events || []) as RawEvent[];
-      setData(buildAnalyticsOverview(rows));
+      const pages = Array.from(
+        new Set(rows.map((row) => row.page_path || "/").filter((pagePath) => pagePath !== "/admin")),
+      ).sort();
+      setPageOptions(pages);
+      setData(buildAnalyticsOverview(rows, { page }));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur stats";
       console.error("[Analytics] overview failed", err);
@@ -105,11 +125,11 @@ export const useAnalyticsOverview = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [days, page]);
 
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
 
-  return { data, loading, error, refetch: fetchOverview };
+  return { data, loading, error, pageOptions, refetch: fetchOverview };
 };

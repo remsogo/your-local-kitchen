@@ -49,6 +49,8 @@
         "name": "Pizz'Atiq",
         "url": "https://pizzatiq.fr/",
         "image": "https://pizzatiq.fr/og-image.jpg",
+        "sameAs": ["https://pizzatiq.fr/"],
+        "hasMap": "https://maps.google.com/?q=58+Rue+Andre+Thome+78120+Sonchamp",
         "telephone": ["+33684069385", "+33134849346"],
         "address": {
           "@type": "PostalAddress",
@@ -57,6 +59,7 @@
           "addressLocality": "Sonchamp",
           "addressCountry": "FR"
         },
+        "areaServed": ["Sonchamp", "Rambouillet", "Yvelines"],
         "servesCuisine": ["Pizza", "Burger", "Sandwich", "Tacos"],
         "priceRange": "EUR",
         "openingHoursSpecification": [
@@ -90,6 +93,55 @@
           }
         ]
       }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Quels sont les horaires de Pizz'Atiq ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Pizz'Atiq est ouvert tous les jours de 10:30 a 14:30 et de 18:00 a 22:00."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Dans quelles zones livrez-vous ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La livraison est disponible dans les villes situees a 20 km ou moins de Sonchamp."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Quelle offre promo est proposee en semaine ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Du lundi au jeudi, les offres s'appliquent sur les pizzas Senior a emporter uniquement."
+            }
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      // Restore clean SPA route after GitHub Pages 404 redirect fallback.
+      (function (location) {
+        if (location.search[1] === "/") {
+          var decoded = location.search
+            .slice(1)
+            .split("&")
+            .map(function (part) {
+              return part.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(null, "", decoded + location.hash);
+        }
+      })(window.location);
     </script>
   </head>
 

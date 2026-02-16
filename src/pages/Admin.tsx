@@ -14,7 +14,12 @@ const Admin = () => {
   const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
   const { menu, loading: menuLoading, refetch } = useMenu();
   const { sauces, error: saucesError, refetch: refetchSauces } = useSauces();
-  const { data: analytics, loading: analyticsLoading, error: analyticsError, refetch: refetchAnalytics } = useAnalyticsOverview();
+  const [analyticsDays, setAnalyticsDays] = useState<7 | 30 | 90>(30);
+  const [analyticsPage, setAnalyticsPage] = useState<string>("all");
+  const { data: analytics, loading: analyticsLoading, error: analyticsError, pageOptions, refetch: refetchAnalytics } = useAnalyticsOverview({
+    days: analyticsDays,
+    page: analyticsPage,
+  });
   const [editingItem, setEditingItem] = useState<{ catId: string; itemIdx: number } | null>(null);
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
   const [uploading, setUploading] = useState(false);
@@ -405,15 +410,38 @@ const Admin = () => {
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 id="analytics-title" className="flex items-center gap-2 font-display text-2xl text-foreground">
               <BarChart3 size={18} className="text-primary" />
-              Overview analytics (30 derniers jours)
+              Overview analytics
             </h2>
-            <button
-              type="button"
-              onClick={() => refetchAnalytics()}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary"
-            >
-              Rafraichir
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={analyticsDays}
+                onChange={(e) => setAnalyticsDays(Number(e.target.value) as 7 | 30 | 90)}
+                className="rounded-lg border border-border bg-secondary px-2 py-1.5 text-xs text-foreground"
+                aria-label="Periode analytics"
+              >
+                <option value={7}>7 jours</option>
+                <option value={30}>30 jours</option>
+                <option value={90}>90 jours</option>
+              </select>
+              <select
+                value={analyticsPage}
+                onChange={(e) => setAnalyticsPage(e.target.value)}
+                className="rounded-lg border border-border bg-secondary px-2 py-1.5 text-xs text-foreground"
+                aria-label="Filtre page analytics"
+              >
+                <option value="all">Toutes les pages</option>
+                {pageOptions.map((page) => (
+                  <option key={page} value={page}>{page}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => refetchAnalytics()}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary"
+              >
+                Rafraichir
+              </button>
+            </div>
           </div>
           {analyticsLoading && <p className="text-sm text-muted-foreground">Chargement des stats...</p>}
           {analyticsError && (

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { extractSearchQuery, trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
-const SITE_URL = "https://pizzatiq.fr/";
+const SITE_URL = "https://pizzatiq.fr";
 
 const upsertMeta = (name: string, content: string, attr: "name" | "property" = "name") => {
   let tag = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
@@ -29,7 +29,7 @@ const PageMeta = () => {
 
   useEffect(() => {
     const path = location.pathname;
-    const canonicalUrl = path === "/" ? SITE_URL : `${SITE_URL}#${path}`;
+    const canonicalUrl = `${SITE_URL}${path}`;
 
     let title = "Pizz'Atiq - Pizzeria a Sonchamp";
     let description = "Pizz'Atiq a Sonchamp: pizzas, burgers, tacos, livraison et commande par telephone.";
@@ -71,7 +71,7 @@ const PageMeta = () => {
     // Do not mix back-office traffic with customer analytics.
     const shouldTrackAnalytics = path !== "/admin";
 
-    // SPA route changes are manual page_view events (HashRouter does not trigger full reloads).
+    // SPA route changes are tracked manually so page_view is sent on each route transition.
     if (shouldTrackAnalytics && typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "page_view", {
         page_title: title,

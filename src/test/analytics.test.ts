@@ -37,4 +37,24 @@ describe("analytics helpers", () => {
     });
     expect(result.topTargets[0]).toEqual({ target: "cta.home.open_menu", clicks: 2 });
   });
+
+  it("supports page-level filtering", () => {
+    const rows: RawEvent[] = [
+      { event_type: "page_view", page_path: "/", target: "Home", search_query: "pizza", created_at: "2026-01-01" },
+      { event_type: "page_view", page_path: "/menu", target: "Menu", search_query: "menu", created_at: "2026-01-02" },
+      { event_type: "click", page_path: "/menu", target: "menu.tab.select:Pizzas", search_query: null, created_at: "2026-01-03" },
+    ];
+
+    const result = buildAnalyticsOverview(rows, { page: "/menu" });
+    expect(result.totalImpressions).toBe(1);
+    expect(result.totalClicks).toBe(1);
+    expect(result.pages).toEqual([
+      {
+        page: "/menu",
+        impressions: 1,
+        clicks: 1,
+        topSearch: "menu",
+      },
+    ]);
+  });
 });

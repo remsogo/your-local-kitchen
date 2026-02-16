@@ -12,6 +12,7 @@ describe("formatInteractionLabel", () => {
 
   it("formats known CTA ids", () => {
     expect(formatInteractionLabel("cta.home.open_menu")).toBe("Accueil -> CTA Voir le menu");
+    expect(formatInteractionLabel("cta.home.open_menu:decouvrir")).toBe("Accueil -> CTA Decouvrir le menu");
     expect(formatInteractionLabel("cta.contact.call:0684069385")).toBe("Contact -> Appel (0684069385)");
     expect(formatInteractionLabel("cta.sticky.call:0134849346")).toBe("Bandeau fixe -> Appel (0134849346)");
   });
@@ -20,4 +21,3 @@ describe("formatInteractionLabel", () => {
     expect(formatInteractionLabel("custom.event_example:foo")).toBe("custom event example foo");
   });
 });
-

@@ -13,7 +13,11 @@ export const formatInteractionLabel = (rawTarget: string) => {
     return `Menu -> Onglet "${category || "Categorie"}"`;
   }
 
-  if (rawTarget.startsWith("cta.home.open_menu")) return "Accueil -> CTA Voir le menu";
+  if (rawTarget.startsWith("cta.home.open_menu")) {
+    const variant = rawTarget.split(":")[1];
+    if (variant === "decouvrir") return "Accueil -> CTA Decouvrir le menu";
+    return "Accueil -> CTA Voir le menu";
+  }
   if (rawTarget.startsWith("cta.home.open_contact")) return "Accueil -> CTA Nous contacter";
 
   if (rawTarget.startsWith("cta.contact.order_call:")) {
@@ -35,4 +39,3 @@ export const formatInteractionLabel = (rawTarget: string) => {
 
   return rawTarget.replace(/[._:]+/g, " ").trim();
 };
-

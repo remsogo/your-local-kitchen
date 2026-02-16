@@ -2,6 +2,29 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCategory, MenuItem, menuData } from "@/data/menuData";
 
+type DbCategory = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  sort_order: number;
+};
+
+type DbPrice = {
+  label: string;
+  price: string;
+  sort_order: number;
+};
+
+type DbItem = {
+  id: string;
+  category_id: string;
+  name: string;
+  description: string;
+  image_url: string | null;
+  sort_order: number;
+  menu_item_prices?: DbPrice[];
+};
+
 export const useMenu = () => {
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,11 +49,14 @@ export const useMenu = () => {
       if (itemError) throw itemError;
 
       // Transform to MenuCategory format
-      const result: MenuCategory[] = (categories || []).map((cat) => ({
+      const typedCategories = (categories || []) as DbCategory[];
+      const typedItems = (items || []) as DbItem[];
+
+      const result: MenuCategory[] = typedCategories.map((cat) => ({
         id: cat.id,
         title: cat.title,
         subtitle: cat.subtitle || undefined,
-        items: (items || [])
+        items: typedItems
           .filter((item) => item.category_id === cat.id)
           .map((item) => ({
             name: item.name,
@@ -38,8 +64,8 @@ export const useMenu = () => {
             imageUrl: item.image_url || undefined,
             dbId: item.id,
             prices: (item.menu_item_prices || [])
-              .sort((a: any, b: any) => a.sort_order - b.sort_order)
-              .map((p: any) => ({ label: p.label, price: p.price })),
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((p) => ({ label: p.label, price: p.price })),
           })),
       }));
 

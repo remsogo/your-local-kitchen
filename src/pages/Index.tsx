@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Clock, MapPin, Truck, ChevronRight } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -5,6 +6,22 @@ import { openingHours, deliveryZones, deliveryHours } from "@/data/menuData";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
 const Index = () => {
+  const [menuCtaVariant, setMenuCtaVariant] = useState<"voir" | "decouvrir">("voir");
+
+  useEffect(() => {
+    const key = "home_menu_cta_variant";
+    const existing = window.localStorage.getItem(key);
+    if (existing === "voir" || existing === "decouvrir") {
+      setMenuCtaVariant(existing);
+      return;
+    }
+    const variant = Math.random() < 0.5 ? "voir" : "decouvrir";
+    window.localStorage.setItem(key, variant);
+    setMenuCtaVariant(variant);
+  }, []);
+
+  const menuCtaLabel = menuCtaVariant === "voir" ? "Voir le menu" : "Decouvrir le menu";
+
   return (
     <div className="min-h-screen pt-40 sm:pt-32">
       <section className="relative flex min-h-[calc(100vh-8rem)] items-center justify-center overflow-hidden">
@@ -24,10 +41,16 @@ const Index = () => {
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               to="/menu"
-              onClick={() => trackAnalyticsEvent({ event_type: "click", page_path: "/", target: "cta.home.open_menu" })}
+              onClick={() =>
+                trackAnalyticsEvent({
+                  event_type: "click",
+                  page_path: "/",
+                  target: `cta.home.open_menu:${menuCtaVariant}`,
+                })
+              }
               className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-3 text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
             >
-              Voir le menu <ChevronRight size={20} />
+              {menuCtaLabel} <ChevronRight size={20} />
             </Link>
             <Link
               to="/contact"
