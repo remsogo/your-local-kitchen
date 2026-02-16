@@ -13,6 +13,7 @@ type AnalyticsEventInput = {
 export const trackAnalyticsEvent = async (event: AnalyticsEventInput) => {
   try {
     // Fire-and-forget insert: analytics must never block user interactions.
+    // Target naming convention: "<area>.<surface>.<action>[:detail]".
     await supabase.from("analytics_events").insert({
       event_type: event.event_type,
       page_path: event.page_path ?? null,

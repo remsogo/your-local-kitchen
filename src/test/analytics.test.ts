@@ -20,9 +20,9 @@ describe("analytics helpers", () => {
       { event_type: "page_view", page_path: "/", target: "Home", search_query: "pizza", created_at: "2026-01-01" },
       { event_type: "page_view", page_path: "/", target: "Home", search_query: "pizza", created_at: "2026-01-02" },
       { event_type: "page_view", page_path: "/menu", target: "Menu", search_query: "menu pizza", created_at: "2026-01-03" },
-      { event_type: "click", page_path: "/", target: "home_cta_menu", search_query: null, created_at: "2026-01-04" },
-      { event_type: "click", page_path: "/", target: "home_cta_menu", search_query: null, created_at: "2026-01-05" },
-      { event_type: "click", page_path: "/menu", target: "sticky_order_call:0684069385", search_query: null, created_at: "2026-01-06" },
+      { event_type: "click", page_path: "/", target: "cta.home.open_menu", search_query: null, created_at: "2026-01-04" },
+      { event_type: "click", page_path: "/", target: "cta.home.open_menu", search_query: null, created_at: "2026-01-05" },
+      { event_type: "click", page_path: "/menu", target: "cta.sticky.call:0684069385", search_query: null, created_at: "2026-01-06" },
     ];
 
     const result = buildAnalyticsOverview(rows);
@@ -35,7 +35,6 @@ describe("analytics helpers", () => {
       clicks: 2,
       topSearch: "pizza",
     });
-    expect(result.topTargets[0]).toEqual({ target: "home_cta_menu", clicks: 2 });
+    expect(result.topTargets[0]).toEqual({ target: "cta.home.open_menu", clicks: 2 });
   });
 });
-

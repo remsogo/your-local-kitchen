@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useMenu } from "@/hooks/useMenu";
 import { defaultSauces, useSauces } from "@/hooks/useSauces";
+import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
 const Menu = () => {
   const { menu, loading } = useMenu();
@@ -50,6 +51,11 @@ const Menu = () => {
                 onClick={() => {
                   setActiveCategory(cat.id);
                   document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  trackAnalyticsEvent({
+                    event_type: "click",
+                    page_path: "/menu",
+                    target: `menu.tab.select:${cat.title}`,
+                  });
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeCat === cat.id

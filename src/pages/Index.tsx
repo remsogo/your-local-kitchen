@@ -24,14 +24,14 @@ const Index = () => {
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               to="/menu"
-              onClick={() => trackAnalyticsEvent({ event_type: "click", page_path: "/", target: "home_cta_menu" })}
+              onClick={() => trackAnalyticsEvent({ event_type: "click", page_path: "/", target: "cta.home.open_menu" })}
               className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-3 text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
             >
               Voir le menu <ChevronRight size={20} />
             </Link>
             <Link
               to="/contact"
-              onClick={() => trackAnalyticsEvent({ event_type: "click", page_path: "/", target: "home_cta_contact" })}
+              onClick={() => trackAnalyticsEvent({ event_type: "click", page_path: "/", target: "cta.home.open_contact" })}
               className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-3 text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
             >
               Nous contacter

@@ -42,7 +42,7 @@ const Contact = () => {
                   <Phone size={18} className="text-primary shrink-0" />
                   <a
                     href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-                    onClick={() => trackClick(`contact_call:${phone}`)}
+                    onClick={() => trackClick(`cta.contact.call:${phone}`)}
                     className="hover:text-primary transition-colors font-medium"
                   >
                     {phone}
@@ -55,7 +55,7 @@ const Contact = () => {
                   href={`https://${restaurantInfo.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackClick("contact_website_click")}
+                  onClick={() => trackClick("cta.contact.open_website")}
                   className="hover:text-primary transition-colors"
                 >
                   {restaurantInfo.website}
@@ -84,7 +84,7 @@ const Contact = () => {
                 <a
                   key={phone}
                   href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-                  onClick={() => trackClick(`contact_order_call:${phone}`)}
+                  onClick={() => trackClick(`cta.contact.order_call:${phone}`)}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
                   aria-label={`Appeler ${restaurantInfo.name}`}
                 >
