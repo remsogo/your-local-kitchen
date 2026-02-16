@@ -30,6 +30,33 @@
     />
     <meta name="twitter:image" content="https://pizzatiq.fr/og-image.jpg" />
 
+    <!-- Static GA script tag so Google detection tools can see it on page source. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_MEASUREMENT_ID%"></script>
+    <script>
+      (function () {
+        var measurementId = "%VITE_GA_MEASUREMENT_ID%";
+        var debugMode = "%VITE_GA_DEBUG_MODE%" === "true";
+        var hasValidGaId = /^G-[A-Z0-9]+$/i.test((measurementId || "").trim());
+
+        if (!hasValidGaId) {
+          console.warn("[Analytics] GA4 disabled: set VITE_GA_MEASUREMENT_ID (format G-XXXXXXXXXX).");
+          return;
+        }
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          window.dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+
+        gtag("js", new Date());
+        // Page views are sent manually in PageMeta on each SPA route change.
+        gtag("config", measurementId.trim(), { send_page_view: false, debug_mode: debugMode });
+        gtag("event", "ga_boot_check", { debug_mode: debugMode, non_interaction: true });
+        console.info("[Analytics] GA4 active (" + measurementId + ") debug=" + debugMode);
+      })();
+    </script>
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
