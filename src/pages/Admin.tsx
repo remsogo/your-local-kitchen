@@ -61,14 +61,14 @@ const Admin = () => {
         return;
       }
 
-      // Update item
+      // Step 1: persist the main item fields.
       const { error: updateError } = await supabase
         .from("menu_items")
         .update({ name: editForm.name, description: editForm.description, image_url: editForm.imageUrl || null })
         .eq("id", dbId);
       if (updateError) throw updateError;
 
-      // Delete old prices and insert new ones
+      // Step 2: rewrite item prices so the DB order always mirrors the form order.
       const { error: deletePricesError } = await supabase.from("menu_item_prices").delete().eq("item_id", dbId);
       if (deletePricesError) throw deletePricesError;
       if (editForm.prices.length > 0) {
@@ -169,6 +169,7 @@ const Admin = () => {
 
       if (itemError || !insertedItem?.id) throw itemError || new Error("Insert item failed");
 
+      // Insert prices after item creation so every price row points to the fresh item id.
       const { error: pricesError } = await supabase
         .from("menu_item_prices")
         .insert(cleanPrices.map((p, i) => ({ item_id: insertedItem.id, label: p.label, price: p.price, sort_order: i })));
@@ -196,6 +197,7 @@ const Admin = () => {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `menu-images/${fileName}`;
 
+      // Upload first, then compute a permanent public URL for preview/storage.
       const { error: uploadError } = await supabase.storage
         .from("menu-images")
         .upload(filePath, file);
