@@ -35,6 +35,11 @@ jobs:
 
       - name: Test
         run: npm run test -- --run
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_PIZZERIA_PHONE: ${{ vars.VITE_PIZZERIA_PHONE }}
+          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
 
       - name: Build
         run: npm run build
