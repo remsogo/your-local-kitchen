@@ -21,7 +21,7 @@ const Header = () => {
           <img
             src={logoPizzatiq}
             alt="Logo Pizz'Atiq"
-            className="h-9 w-9 rounded-md object-cover"
+            className="h-11 w-11 rounded-md border border-border/60 bg-card p-0.5 object-contain"
           />
           <span className="font-display text-3xl text-gradient tracking-wider">Pizz'Atiq</span>
         </Link>

@@ -11,7 +11,7 @@ const Footer = () => (
           <img
             src={logoPizzatiq}
             alt="Logo Pizz'Atiq"
-            className="h-8 w-8 rounded-md object-cover"
+            className="h-10 w-10 rounded-md border border-border/60 bg-card p-0.5 object-contain"
           />
           <h3 className="font-display text-2xl text-gradient">Pizz'Atiq</h3>
         </div>
