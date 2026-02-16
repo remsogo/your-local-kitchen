@@ -1,7 +1,7 @@
 ﻿import { restaurantInfo } from "@/data/menuData";
 
 const MentionsLegales = () => (
-  <div className="min-h-screen pt-32 pb-16">
+  <div className="min-h-screen pt-40 pb-16 sm:pt-32">
     <div className="container mx-auto px-4 max-w-2xl">
       <h1 className="font-display text-5xl text-gradient text-center mb-12">Mentions legales</h1>
 

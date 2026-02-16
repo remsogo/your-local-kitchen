@@ -6,7 +6,7 @@ import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
 const Index = () => {
   return (
-    <div className="min-h-screen pt-32">
+    <div className="min-h-screen pt-40 sm:pt-32">
       <section className="relative flex min-h-[calc(100vh-8rem)] items-center justify-center overflow-hidden">
         <img src={heroBg} alt="Pizza artisanale" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 hero-overlay" />

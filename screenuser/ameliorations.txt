@@ -1,8 +1,8 @@
-AUDIT COMPLET - PIZZ'ATIQ
+ï»¿AUDIT COMPLET - PIZZ'ATIQ
 Date: 2026-02-16
 
 1) Synthese
-- Site globalement fonctionnel et orienté conversion locale (CTA telephone + menu + contact).
+- Site globalement fonctionnel et oriente conversion locale (CTA telephone + menu + contact).
 - Analytics GA4 maintenant detectee et events custom en base Supabase.
 - Points principaux a corriger en priorite: SEO technique (HashRouter), bundle JS volumineux, hygiene lint/types.
 
@@ -66,5 +66,34 @@ P2
 3. Ajouter decoupage code + lazy Admin.
 4. Mettre en place sitemap/robots definitifs.
 5. Iterer sur dashboard analytics (filtres + exports CSV).
+
+8) Google Analytics - rendre les infos plus pertinentes (sans implementation immediate)
+- Objectif business adapte a un snack sans commande en ligne:
+  - KPI principal: clics telephone.
+  - KPI secondaire: navigation vers menu/contact + consultations pages cles.
+  - KPI local SEO: provenance moteur + pages d'entree.
+- Events recommandes a privilegier:
+  - call_click (avec detail: source = sticky/home/contact, numero).
+  - menu_tab_click (categorie).
+  - contact_view (ou page_view /contact deja present).
+  - map_interaction (si ajout suivi clic carte).
+- Eviter de surcharger GA:
+  - limiter les events a ceux actionnables pour le business local.
+  - exclure totalement la route /admin (deja applique dans les stats internes).
+- Configuration GA4 a faire dans l'interface (pas dans le code):
+  - marquer call_click comme Conversion.
+  - creer un rapport custom "Acquisition locale":
+    - dimensions: page_path, source/medium, city (si dispo), device category.
+    - metriques: users, views, event count, conversions.
+  - creer un rapport custom "Intentions de commande":
+    - dimensions: event name, target (ou param equivalent), page_path.
+    - metriques: event count, users.
+- Segmentations utiles:
+  - Mobile uniquement (prioritaire pour snack local).
+  - Trafic organique Google uniquement.
+  - Zone geographique locale (IDF / Yvelines selon donnees disponibles).
+- Hygiene de lecture:
+  - analyser sur fenetre 28 jours minimum (eviter bruit journalier).
+  - comparer semaine N vs N-1 sur call_click et /menu.
 
 Fin du rapport.

@@ -8,6 +8,7 @@ import { createCategoryPayload, createItemPayload, sanitizePrices, toSupabaseErr
 import { useSauces } from "@/hooks/useSauces";
 import { useAnalyticsOverview } from "@/hooks/useAnalyticsOverview";
 import { formatInteractionLabel } from "@/lib/analyticsLabels";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
   const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
@@ -20,6 +21,7 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [creatingItem, setCreatingItem] = useState(false);
+  const [adminTab, setAdminTab] = useState<"menu" | "sauces" | "analytics">("menu");
   const [adminMessage, setAdminMessage] = useState<string>("");
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [newCategorySubtitle, setNewCategorySubtitle] = useState("");
@@ -322,7 +324,7 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center">
+      <div className="min-h-screen pt-40 sm:pt-32 flex items-center justify-center">
         <p className="text-muted-foreground">Chargement...</p>
       </div>
     );
@@ -330,7 +332,7 @@ const Admin = () => {
 
   if (!authenticated || !isAdmin) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center">
+      <div className="min-h-screen pt-40 sm:pt-32 flex items-center justify-center">
         <form onSubmit={handleLogin} className="bg-card rounded-xl p-8 max-w-sm w-full card-glow">
           <div className="flex items-center gap-3 mb-6">
             <Lock size={24} className="text-primary" />
@@ -365,7 +367,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 pb-16">
+    <div className="min-h-screen pt-40 pb-16 sm:pt-32">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex justify-between items-center mb-8">
           <h1 className="font-display text-5xl text-gradient">Tableau de bord</h1>
@@ -386,6 +388,19 @@ const Admin = () => {
           </p>
         )}
 
+        <Tabs
+          value={adminTab}
+          onValueChange={(value) => setAdminTab(value as "menu" | "sauces" | "analytics")}
+          className="mb-8"
+        >
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-2 bg-secondary/40 p-1">
+            <TabsTrigger value="menu">Menu</TabsTrigger>
+            <TabsTrigger value="sauces">Sauces</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {adminTab === "analytics" && (
         <section className="mb-10 rounded-xl border border-border/60 bg-card p-4 card-glow" aria-labelledby="analytics-title">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 id="analytics-title" className="flex items-center gap-2 font-display text-2xl text-foreground">
@@ -468,7 +483,9 @@ const Admin = () => {
             </div>
           )}
         </section>
+        )}
 
+        {adminTab === "menu" && (
         <div className="mb-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-card p-4 card-glow">
             <h2 className="mb-3 flex items-center gap-2 font-display text-2xl text-foreground">
@@ -591,7 +608,9 @@ const Admin = () => {
             </div>
           </div>
         </div>
+        )}
 
+        {adminTab === "sauces" && (
         <div className="mb-10 rounded-xl border border-border/60 bg-card p-4 card-glow">
           <h2 className="mb-3 font-display text-2xl text-foreground">Bar a sauces</h2>
           <p className="mb-4 text-sm text-muted-foreground">
@@ -671,6 +690,7 @@ const Admin = () => {
               ))}
           </div>
         </div>
+        )}
 
         {/* Editing modal */}
         {editingItem && (
@@ -788,6 +808,7 @@ const Admin = () => {
         )}
 
         {/* Menu categories */}
+        {adminTab === "menu" && (
         <div className="space-y-12">
           {menu.map((category) => (
             <section key={category.id}>
@@ -838,6 +859,7 @@ const Admin = () => {
             </section>
           ))}
         </div>
+        )}
       </div>
     </div>
   );

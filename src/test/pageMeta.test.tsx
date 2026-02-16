@@ -1,6 +1,6 @@
 import { render, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import PageMeta from "@/components/PageMeta";
 
 const trackAnalyticsEventMock = vi.fn();
@@ -12,8 +12,13 @@ vi.mock("@/lib/analyticsEvents", () => ({
 }));
 
 describe("PageMeta", () => {
-  it("updates title and sends page_view event on route render", async () => {
+  beforeEach(() => {
+    trackAnalyticsEventMock.mockClear();
+    extractSearchQueryMock.mockClear();
     (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag = vi.fn();
+  });
+
+  it("updates title and sends page_view event on route render", async () => {
     render(
       <MemoryRouter initialEntries={["/menu"]}>
         <PageMeta />
@@ -33,5 +38,25 @@ describe("PageMeta", () => {
       );
     });
   });
-});
 
+  it("does not send analytics events on admin route", async () => {
+    render(
+      <MemoryRouter initialEntries={["/admin"]}>
+        <PageMeta />
+        <Routes>
+          <Route path="/admin" element={<div>Admin</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(document.title).toContain("Administration");
+      expect(trackAnalyticsEventMock).not.toHaveBeenCalled();
+      expect((window as unknown as { gtag: (...args: unknown[]) => void }).gtag).not.toHaveBeenCalledWith(
+        "event",
+        "page_view",
+        expect.anything(),
+      );
+    });
+  });
+});

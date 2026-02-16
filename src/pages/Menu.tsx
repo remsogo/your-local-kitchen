@@ -26,14 +26,14 @@ const Menu = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center">
+      <div className="min-h-screen pt-40 sm:pt-32 flex items-center justify-center">
         <p className="text-muted-foreground">Chargement du menu...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-32 pb-36">
+    <div className="min-h-screen pt-40 pb-16 sm:pt-32 md:pb-36">
       <div className="container mx-auto px-4">
         <h1 className="font-display text-5xl sm:text-6xl text-gradient text-center mb-8">Notre Menu</h1>
         <section aria-labelledby="menu-local-heading" className="mx-auto mb-8 max-w-3xl">
@@ -134,8 +134,23 @@ const Menu = () => {
         </div>
       </div>
 
+      <section className="mx-auto mt-8 max-w-4xl px-4 md:hidden" aria-label="Informations sauces">
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Bar a sauces</p>
+        <p className="mt-1 text-sm text-muted-foreground">Sauces disponibles sur demande avec votre commande.</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {displayedSauces.map((sauce) => (
+            <span
+              key={sauce}
+              className="rounded-full border border-border/70 bg-card px-3 py-1 text-xs font-medium text-foreground"
+            >
+              {sauce}
+            </span>
+          ))}
+        </div>
+      </section>
+
       <aside
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/60 bg-background/95 backdrop-blur-md"
+        className="fixed bottom-0 left-0 right-0 z-40 hidden border-t border-border/60 bg-background/95 backdrop-blur-md md:block"
         aria-label="Informations sauces"
       >
         <div className="mx-auto max-w-4xl px-4 py-3">
