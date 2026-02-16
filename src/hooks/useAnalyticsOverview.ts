@@ -25,13 +25,15 @@ export type AnalyticsOverview = {
 };
 
 export const buildAnalyticsOverview = (rows: RawEvent[]): AnalyticsOverview => {
+  // Keep dashboard focused on customer behavior; back-office page is intentionally excluded.
+  const customerRows = rows.filter((row) => (row.page_path || "/") !== "/admin");
   const viewsByPage = new Map<string, number>();
   const clicksByPage = new Map<string, number>();
   const searchByPage = new Map<string, Map<string, number>>();
   const clicksByTarget = new Map<string, number>();
 
   // Build aggregated counters client-side so this works without custom SQL views/RPC.
-  for (const row of rows) {
+  for (const row of customerRows) {
     const page = row.page_path || "/";
     if (row.event_type === "page_view") {
       viewsByPage.set(page, (viewsByPage.get(page) || 0) + 1);

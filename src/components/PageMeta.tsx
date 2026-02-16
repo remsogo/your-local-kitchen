@@ -68,8 +68,11 @@ const PageMeta = () => {
     upsertMeta("twitter:description", description);
     upsertLink("canonical", canonicalUrl);
 
+    // Do not mix back-office traffic with customer analytics.
+    const shouldTrackAnalytics = path !== "/admin";
+
     // SPA route changes are manual page_view events (HashRouter does not trigger full reloads).
-    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    if (shouldTrackAnalytics && typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "page_view", {
         page_title: title,
         page_path: path,
@@ -79,13 +82,15 @@ const PageMeta = () => {
 
     // Store source query when available so admin can see which searches drive page impressions.
     const searchQuery = extractSearchQuery(document.referrer || "");
-    trackAnalyticsEvent({
-      event_type: "page_view",
-      page_path: path,
-      target: title,
-      search_query: searchQuery,
-      referrer: document.referrer || null,
-    });
+    if (shouldTrackAnalytics) {
+      trackAnalyticsEvent({
+        event_type: "page_view",
+        page_path: path,
+        target: title,
+        search_query: searchQuery,
+        referrer: document.referrer || null,
+      });
+    }
   }, [location.pathname]);
 
   return null;

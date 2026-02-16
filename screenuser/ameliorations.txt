@@ -1,0 +1,70 @@
+AUDIT COMPLET - PIZZ'ATIQ
+Date: 2026-02-16
+
+1) Synthese
+- Site globalement fonctionnel et orienté conversion locale (CTA telephone + menu + contact).
+- Analytics GA4 maintenant detectee et events custom en base Supabase.
+- Points principaux a corriger en priorite: SEO technique (HashRouter), bundle JS volumineux, hygiene lint/types.
+
+2) Verifications techniques executees
+- Tests unitaires/integration: OK (13 tests)
+- Build production: OK
+- Lint: NOK (6 erreurs + 7 warnings)
+
+Details lint bloquants:
+- src/components/ui/command.tsx -> interface vide (no-empty-object-type)
+- src/components/ui/textarea.tsx -> interface vide (no-empty-object-type)
+- src/hooks/useMenu.ts -> any explicites (3 occurrences)
+- tailwind.config.ts -> require() interdit par la regle TS
+
+3) Ameliorations appliquees dans cette passe
+- UX logo:
+  - Logo rendu lisible (Header + Footer): taille, fond, bordure, object-contain.
+- Analytics:
+  - Noms d'interactions normalises et plus lisibles.
+  - Clics onglets menu trackes.
+  - Traduction labels techniques -> labels business dans l'admin.
+  - Exclusion du trafic /admin des stats (tracking + overview) pour eviter pollution.
+- Qualite code:
+  - Extraction du formateur de labels analytics dans src/lib/analyticsLabels.ts.
+  - Tests ajoutes pour ce mapping (compat nouveaux + anciens events).
+- Build hygiene:
+  - warning CSS @import corrige (ordre des directives dans src/index.css).
+
+4) Recommandations prioritaires (impact business + SEO)
+P0 (a faire en premier)
+- [SEO structurel] Migrer HashRouter -> BrowserRouter + fallback serveur (ou redirect rules) pour URLs propres indexables.
+  Impact: fort (SEO local), Effort: moyen.
+- [Perf mobile] Code-splitting des pages lourdes (Admin en lazy import) + decoupage chunk principal.
+  Impact: fort (Core Web Vitals), Effort: moyen.
+- [Data quality] Corriger les erreurs lint bloquantes et typer useMenu sans any.
+  Impact: fort (fiabilite dev), Effort: faible-moyen.
+
+P1
+- [SEO local avance] Ajouter sitemap.xml + robots.txt coherents avec router choisi, enrichir JSON-LD (sameAs, geo, openingHours plus fin).
+- [Analytics] Ajouter filtre periode (7j/30j/90j) et filtre page dans l'overview admin.
+- [Conversion UX] A/B test copy CTA (Commander maintenant vs Commander), suivi par event naming deja en place.
+
+P2
+- [Observabilite] Sentry front + tag de release sur deploy.
+- [Qualite continue] Gate CI: lint + test + build obligatoires avant merge.
+- [Media] Convertir logo/menu en WebP/AVIF + responsive srcset.
+
+5) Recommandations visuelles
+- Garder le logo sur fond neutre (deja corrige) + prevoir version PNG transparente HD si disponible.
+- Uniformiser l'echelle typo entre header hero et navigation mobile.
+- Ajouter un etat visuel plus net sur onglet menu actif en mobile (contraste + underline).
+
+6) Recommandations referencement local
+- Verifier coherence NAP (Name/Address/Phone) identique partout (site, GBP, annuaires).
+- Ajouter pages ou sections localisees (zones de livraison detaillees) si strategy locale.
+- Ajouter FAQ schema (livraison, horaires, paiement, promo Senior).
+
+7) Prochaine execution recommandee (ordre concret)
+1. Corriger lint/type debt (fichiers cites plus haut).
+2. Passer en BrowserRouter avec fallback deploy.
+3. Ajouter decoupage code + lazy Admin.
+4. Mettre en place sitemap/robots definitifs.
+5. Iterer sur dashboard analytics (filtres + exports CSV).
+
+Fin du rapport.
