@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { MenuItem } from "@/data/menuData";
-import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, FolderPlus } from "lucide-react";
+import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, FolderPlus, ChevronUp, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMenu } from "@/hooks/useMenu";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { createCategoryPayload, createItemPayload, sanitizePrices, toSupabaseErrorMessage } from "@/lib/adminMenu";
+import { useSauces } from "@/hooks/useSauces";
 
 const Admin = () => {
   const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
   const { menu, loading: menuLoading, refetch } = useMenu();
+  const { sauces, error: saucesError, refetch: refetchSauces } = useSauces();
   const [editingItem, setEditingItem] = useState<{ catId: string; itemIdx: number } | null>(null);
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
   const [uploading, setUploading] = useState(false);
@@ -19,6 +21,8 @@ const Admin = () => {
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [newCategorySubtitle, setNewCategorySubtitle] = useState("");
   const [newItemCategoryId, setNewItemCategoryId] = useState("");
+  const [newSauceName, setNewSauceName] = useState("");
+  const [savingSauces, setSavingSauces] = useState(false);
   const [newItemForm, setNewItemForm] = useState<MenuItem>({
     name: "",
     description: "",
@@ -217,6 +221,97 @@ const Admin = () => {
     }
   };
 
+  const createSauce = async () => {
+    const name = newSauceName.trim();
+    if (!name) {
+      setAdminMessage("Le nom de sauce est requis.");
+      return;
+    }
+    setSavingSauces(true);
+    setAdminMessage("");
+    try {
+      const { error } = await supabase.from("sauces").insert({
+        name,
+        sort_order: sauces.length,
+        is_active: true,
+      });
+      if (error) throw error;
+      setNewSauceName("");
+      await refetchSauces();
+      setAdminMessage("Sauce ajoutee.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible d'ajouter la sauce.");
+      console.error("[Admin] createSauce failed", err);
+      setAdminMessage(`Erreur sauces: ${message}`);
+      alert(`Impossible d'ajouter la sauce: ${message}`);
+    } finally {
+      setSavingSauces(false);
+    }
+  };
+
+  const toggleSauce = async (id: string, nextActive: boolean) => {
+    setSavingSauces(true);
+    setAdminMessage("");
+    try {
+      const { error } = await supabase.from("sauces").update({ is_active: nextActive }).eq("id", id);
+      if (error) throw error;
+      await refetchSauces();
+      setAdminMessage("Sauce mise a jour.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible de mettre a jour la sauce.");
+      console.error("[Admin] toggleSauce failed", err);
+      setAdminMessage(`Erreur sauces: ${message}`);
+      alert(`Impossible de mettre a jour la sauce: ${message}`);
+    } finally {
+      setSavingSauces(false);
+    }
+  };
+
+  const deleteSauce = async (id: string) => {
+    setSavingSauces(true);
+    setAdminMessage("");
+    try {
+      const { error } = await supabase.from("sauces").delete().eq("id", id);
+      if (error) throw error;
+      await refetchSauces();
+      setAdminMessage("Sauce supprimee.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible de supprimer la sauce.");
+      console.error("[Admin] deleteSauce failed", err);
+      setAdminMessage(`Erreur sauces: ${message}`);
+      alert(`Impossible de supprimer la sauce: ${message}`);
+    } finally {
+      setSavingSauces(false);
+    }
+  };
+
+  const moveSauce = async (id: string, direction: -1 | 1) => {
+    const ordered = [...sauces].sort((a, b) => a.sort_order - b.sort_order);
+    const index = ordered.findIndex((s) => s.id === id);
+    const targetIndex = index + direction;
+    if (index < 0 || targetIndex < 0 || targetIndex >= ordered.length) return;
+
+    const current = ordered[index];
+    const target = ordered[targetIndex];
+    setSavingSauces(true);
+    setAdminMessage("");
+    try {
+      const { error: firstError } = await supabase.from("sauces").update({ sort_order: target.sort_order }).eq("id", current.id);
+      if (firstError) throw firstError;
+      const { error: secondError } = await supabase.from("sauces").update({ sort_order: current.sort_order }).eq("id", target.id);
+      if (secondError) throw secondError;
+      await refetchSauces();
+      setAdminMessage("Ordre des sauces mis a jour.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible de reordonner les sauces.");
+      console.error("[Admin] moveSauce failed", err);
+      setAdminMessage(`Erreur sauces: ${message}`);
+      alert(`Impossible de reordonner les sauces: ${message}`);
+    } finally {
+      setSavingSauces(false);
+    }
+  };
+
   const loading = authLoading || menuLoading;
 
   if (loading) {
@@ -405,6 +500,86 @@ const Admin = () => {
                 {creatingItem ? "Creation..." : "Creer le produit"}
               </button>
             </div>
+          </div>
+        </div>
+
+        <div className="mb-10 rounded-xl border border-border/60 bg-card p-4 card-glow">
+          <h2 className="mb-3 font-display text-2xl text-foreground">Bar a sauces</h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Cette liste alimente automatiquement le bandeau sticky en bas de la page menu.
+          </p>
+          {saucesError && (
+            <p className="mb-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              Table sauces indisponible: {saucesError}
+            </p>
+          )}
+          <div className="mb-4 flex gap-2">
+            <input
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Nouvelle sauce"
+              value={newSauceName}
+              onChange={(e) => setNewSauceName(e.target.value)}
+            />
+            <button
+              onClick={createSauce}
+              disabled={savingSauces || !newSauceName.trim()}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              <Plus size={14} />
+              Ajouter
+            </button>
+          </div>
+          <div className="space-y-2">
+            {[...sauces]
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((sauce, index, arr) => (
+                <div
+                  key={sauce.id}
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-secondary/40 px-3 py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleSauce(sauce.id, !sauce.is_active)}
+                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        sauce.is_active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {sauce.is_active ? "Active" : "Inactive"}
+                    </button>
+                    <span className="text-sm text-foreground">{sauce.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={savingSauces || index === 0}
+                      onClick={() => moveSauce(sauce.id, -1)}
+                      className="rounded-md border border-border px-2 py-1 text-foreground hover:bg-primary/10 disabled:opacity-40"
+                      aria-label={`Monter ${sauce.name}`}
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingSauces || index === arr.length - 1}
+                      onClick={() => moveSauce(sauce.id, 1)}
+                      className="rounded-md border border-border px-2 py-1 text-foreground hover:bg-primary/10 disabled:opacity-40"
+                      aria-label={`Descendre ${sauce.name}`}
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingSauces}
+                      onClick={() => deleteSauce(sauce.id)}
+                      className="rounded-md border border-border px-2 py-1 text-foreground hover:bg-destructive hover:text-destructive-foreground disabled:opacity-40"
+                      aria-label={`Supprimer ${sauce.name}`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
 

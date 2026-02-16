@@ -15,7 +15,7 @@ const Index = () => {
             Promo lun-jeu
           </div>
           <p className="mx-auto mb-4 max-w-3xl rounded-lg border border-border/70 bg-background/40 px-4 py-3 text-sm text-foreground sm:text-base">
-            OFFRES PIZZA (du lundi au jeudi) : 1 pizza achetee = la 2eme a -50% / 2 pizzas achetees = la 3eme offerte (a emporter seulement).
+            OFFRES PIZZA SENIOR (du lundi au jeudi) : 1 pizza Senior achetee = la 2eme Senior a -50% / 2 pizzas Senior achetees = la 3eme Senior offerte (a emporter seulement).
           </p>
           <p className="mb-2 text-lg text-foreground/80 sm:text-xl">Pizza - Burger - Sandwich - Tacos</p>
           <p className="mb-8 text-sm text-muted-foreground">58 Rue Andre Thome, 78120 Sonchamp</p>

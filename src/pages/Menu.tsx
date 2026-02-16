@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useMenu } from "@/hooks/useMenu";
+import { defaultSauces, useSauces } from "@/hooks/useSauces";
 
 const Menu = () => {
   const { menu, loading } = useMenu();
+  const { sauces } = useSauces();
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [zoomImage, setZoomImage] = useState<{ src: string; alt: string } | null>(null);
-  const sauces = ["Blanche", "Harissa", "Barbecue", "Algerienne", "Samourai", "Ketchup", "Mayonnaise", "Andalouse"];
+  const sauceNames = sauces.filter((s) => s.is_active).map((s) => s.name.trim()).filter(Boolean);
+  const displayedSauces = sauceNames.length > 0 ? sauceNames : defaultSauces;
 
   const activeCat = activeCategory || menu[0]?.id || "";
 
@@ -132,7 +135,7 @@ const Menu = () => {
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">Bar a sauces</p>
           <p className="mt-1 text-sm text-muted-foreground">Sauces disponibles sur demande avec votre commande.</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {sauces.map((sauce) => (
+            {displayedSauces.map((sauce) => (
               <span
                 key={sauce}
                 className="rounded-full border border-border/70 bg-card px-3 py-1 text-xs font-medium text-foreground"
