@@ -19,12 +19,13 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen pt-40 pb-16 sm:pt-32">
+    <div className="min-h-screen pb-16 pt-32">
       <div className="container mx-auto px-4 max-w-2xl">
-        <h1 className="font-display text-5xl sm:text-6xl text-gradient text-center mb-12">Contact</h1>
+        <h1 className="mb-3 text-center font-display text-5xl text-gradient sm:text-6xl">Contact</h1>
+        <p className="mb-10 text-center text-sm text-muted-foreground">Appelez-nous directement pour commander ou nous trouver.</p>
 
         <div className="space-y-6">
-          <div className="bg-card rounded-xl p-6 card-glow">
+          <div className="section-shell rounded-xl p-6">
             <h2 className="font-display text-2xl text-foreground mb-4">Nous trouver</h2>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-muted-foreground">
@@ -64,7 +65,7 @@ const Contact = () => {
             </div>
           </div>
 
-          <div className="bg-card rounded-xl overflow-hidden card-glow">
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-card/65">
             <iframe
               title="Localisation Pizz'Atiq"
               src="https://maps.google.com/maps?q=58%20Rue%20Andr%C3%A9%20Thome%2C%2078120%20Sonchamp&t=&z=16&ie=UTF8&iwloc=&output=embed"
@@ -77,7 +78,7 @@ const Contact = () => {
             />
           </div>
 
-          <div className="bg-card rounded-xl p-6 card-glow">
+          <div className="section-shell rounded-xl p-6">
             <h2 className="font-display text-2xl text-foreground mb-4">Livraison</h2>
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {phoneNumbers.map((phone) => (
@@ -85,7 +86,7 @@ const Contact = () => {
                   key={phone}
                   href={`tel:${phone.replace(/[^\d+]/g, "")}`}
                   onClick={() => trackClick(`cta.contact.order_call:${phone}`)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary/55 bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[0_12px_24px_-18px_hsl(30_100%_50%_/_0.95)] transition-all hover:-translate-y-0.5 hover:opacity-95 sm:w-auto"
                   aria-label={`Appeler ${restaurantInfo.name}`}
                 >
                   <Phone size={16} />

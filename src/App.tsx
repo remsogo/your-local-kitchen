@@ -30,7 +30,7 @@ const App = () => (
         <main>
           <Suspense
             fallback={
-              <div className="min-h-screen pt-40 sm:pt-32 flex items-center justify-center">
+              <div className="min-h-screen pt-32 flex items-center justify-center">
                 <p className="text-muted-foreground">Chargement...</p>
               </div>
             }

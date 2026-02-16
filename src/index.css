@@ -22,7 +22,7 @@
     --secondary-foreground: 0 0% 90%;
 
     --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    --muted-foreground: 0 0% 66%;
 
     --accent: 30 100% 50%;
     --accent-foreground: 0 0% 100%;
@@ -57,6 +57,9 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    background-image:
+      radial-gradient(1100px 500px at 50% -15%, hsl(30 100% 50% / 0.16), transparent 65%),
+      linear-gradient(180deg, hsl(0 0% 8%), hsl(0 0% 7%));
     font-family: 'Inter', sans-serif;
   }
 
@@ -73,7 +76,9 @@
   }
 
   .hero-overlay {
-    background: linear-gradient(to bottom, hsl(0 0% 0% / 0.6), hsl(0 0% 0% / 0.8));
+    background:
+      radial-gradient(100% 55% at 50% 8%, hsl(30 100% 50% / 0.18), transparent 70%),
+      linear-gradient(to bottom, hsl(0 0% 0% / 0.58), hsl(0 0% 0% / 0.82));
   }
 
   .section-dark {
@@ -82,5 +87,23 @@
 
   .card-glow {
     box-shadow: 0 0 20px hsl(30 100% 50% / 0.1);
+  }
+
+  .glass-panel {
+    background: linear-gradient(160deg, hsl(0 0% 14% / 0.78), hsl(0 0% 10% / 0.72));
+    border: 1px solid hsl(0 0% 100% / 0.12);
+    backdrop-filter: blur(10px);
+  }
+
+  .section-shell {
+    background:
+      linear-gradient(150deg, hsl(0 0% 11% / 0.92), hsl(0 0% 8% / 0.94)),
+      radial-gradient(600px 240px at 85% -20%, hsl(30 100% 50% / 0.15), transparent 70%);
+    border: 1px solid hsl(0 0% 100% / 0.08);
+    box-shadow: 0 18px 40px hsl(0 0% 0% / 0.35);
+  }
+
+  .soft-divider {
+    border-color: hsl(0 0% 100% / 0.08);
   }
 }

@@ -12,14 +12,15 @@ const StickyOrderBar = () => {
   if (phoneNumbers.length === 0) return null;
 
   return (
-    <div className="fixed left-0 right-0 top-16 z-40 border-b border-primary/40 bg-background/95 backdrop-blur-md">
-      {/* Mobile: stacked CTAs for readability. Desktop: compact horizontal row. */}
-      <div className="container mx-auto grid grid-cols-1 gap-2 px-4 py-2 sm:flex sm:h-12 sm:items-center sm:gap-2 sm:overflow-x-auto sm:py-0">
+    <div className="fixed left-0 right-0 top-16 z-40 border-b border-primary/25 bg-background/82 backdrop-blur-md">
+      <div className="container mx-auto flex h-12 items-center gap-2 overflow-x-auto px-4">
+        <span className="hidden shrink-0 rounded-full border border-border/70 bg-card/65 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:inline-flex">
+          Commande rapide
+        </span>
         {phoneNumbers.map((phone) => (
           <a
             key={phone}
             href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-            // Track CTA phone taps to measure conversion intent from each page.
             onClick={() =>
               trackAnalyticsEvent({
                 event_type: "click",
@@ -27,11 +28,12 @@ const StickyOrderBar = () => {
                 target: `cta.sticky.call:${phone}`,
               })
             }
-            className="inline-flex w-full items-center justify-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto sm:shrink-0 sm:text-sm"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-primary/55 bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-[0_8px_18px_-14px_hsl(30_100%_50%_/_0.95)] transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 sm:px-4 sm:text-sm"
             aria-label={`Commander au ${phone}`}
           >
             <Phone size={14} />
-            Commander: {phone}
+            <span className="sm:hidden">{phone}</span>
+            <span className="hidden sm:inline">Commander: {phone}</span>
           </a>
         ))}
       </div>

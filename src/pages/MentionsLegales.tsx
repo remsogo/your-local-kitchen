@@ -1,11 +1,11 @@
 ﻿import { restaurantInfo } from "@/data/menuData";
 
 const MentionsLegales = () => (
-  <div className="min-h-screen pt-40 pb-16 sm:pt-32">
+  <div className="min-h-screen pb-16 pt-32">
     <div className="container mx-auto px-4 max-w-2xl">
-      <h1 className="font-display text-5xl text-gradient text-center mb-12">Mentions legales</h1>
+      <h1 className="mb-10 text-center font-display text-5xl text-gradient">Mentions legales</h1>
 
-      <div className="space-y-8 text-sm text-muted-foreground">
+      <div className="section-shell space-y-8 rounded-2xl p-6 text-sm leading-6 text-muted-foreground sm:p-8">
         <section>
           <h2 className="font-display text-2xl text-foreground mb-3">Editeur du site</h2>
           <p>{restaurantInfo.name}</p>
