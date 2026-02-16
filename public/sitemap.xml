@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://pizzatiq.fr/</loc>
+    <loc>https://www.pizzatiq.fr/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://pizzatiq.fr/menu</loc>
+    <loc>https://www.pizzatiq.fr/menu</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pizzatiq.fr/contact</loc>
+    <loc>https://www.pizzatiq.fr/contact</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pizzatiq.fr/mentions-legales</loc>
+    <loc>https://www.pizzatiq.fr/mentions-legales</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
 </urlset>
-

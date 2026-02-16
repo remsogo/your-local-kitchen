@@ -2,5 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://pizzatiq.fr/sitemap.xml
-
+Sitemap: https://www.pizzatiq.fr/sitemap.xml

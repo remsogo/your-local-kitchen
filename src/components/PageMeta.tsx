@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { extractSearchQuery, trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
-const SITE_URL = "https://pizzatiq.fr";
+const SITE_URL = "https://www.pizzatiq.fr";
 
 const upsertMeta = (name: string, content: string, attr: "name" | "property" = "name") => {
   let tag = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
@@ -32,15 +32,24 @@ const PageMeta = () => {
     const canonicalUrl = `${SITE_URL}${path}`;
 
     let title = "Pizz'Atiq - Pizzeria a Sonchamp";
-    let description = "Pizz'Atiq a Sonchamp: pizzas, burgers, tacos, livraison et commande par telephone.";
+    let description =
+      "Snack, kebab, pizza et restaurant a Sonchamp: Pizz'Atiq, livraison locale et commande par telephone.";
+    let keywords =
+      "snack Sonchamp, kebab Sonchamp, pizza Sonchamp, restaurant Sonchamp, livraison Sonchamp, snack Rambouillet, kebab Rambouillet";
     let robots = "index,follow";
 
     if (path === "/menu") {
-      title = "Menu Pizz'Atiq - Pizzas, Burgers, Tacos a Sonchamp";
-      description = "Consultez le menu Pizz'Atiq a Sonchamp: pizzas, burgers, sandwichs, tacos, salades et supplements.";
+      title = "Menu Pizz'Atiq - Pizza, Kebab, Snack et Restaurant a Sonchamp";
+      description =
+        "Menu snack a Sonchamp: pizzas, kebabs, burgers, sandwichs, tacos, salades et supplements. Livraison locale autour de Sonchamp.";
+      keywords =
+        "menu pizza Sonchamp, menu kebab Sonchamp, snack Sonchamp menu, restaurant Sonchamp menu, livraison 20 km Sonchamp";
     } else if (path === "/contact") {
-      title = "Contact Pizz'Atiq - Sonchamp";
-      description = "Adresse, telephones, horaires et livraison Pizz'Atiq a Sonchamp.";
+      title = "Contact Pizz'Atiq - Snack, Kebab, Pizza a Sonchamp";
+      description =
+        "Adresse, telephones, horaires et zone de livraison Pizz'Atiq a Sonchamp et autour (20 km).";
+      keywords =
+        "contact snack Sonchamp, livraison kebab Sonchamp, pizza Rambouillet livraison, restaurant autour de Sonchamp";
     } else if (path === "/mentions-legales") {
       title = "Mentions legales - Pizz'Atiq";
       description = "Mentions legales et informations reglementaires du site Pizz'Atiq.";
@@ -56,8 +65,13 @@ const PageMeta = () => {
 
     document.title = title;
     upsertMeta("description", description);
+    upsertMeta("keywords", keywords);
     upsertMeta("author", "Pizz'Atiq");
     upsertMeta("robots", robots);
+    upsertMeta("geo.region", "FR-78");
+    upsertMeta("geo.placename", "Sonchamp");
+    upsertMeta("geo.position", "48.575896;1.878415");
+    upsertMeta("ICBM", "48.575896, 1.878415");
     upsertMeta("og:title", title, "property");
     upsertMeta("og:description", description, "property");
     upsertMeta("og:type", "website", "property");

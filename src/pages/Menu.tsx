@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useMenu } from "@/hooks/useMenu";
 import { defaultSauces, useSauces } from "@/hooks/useSauces";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
+import { sortMenuItemsByImage } from "@/lib/menuSort";
 
 const Menu = () => {
   const { menu, loading } = useMenu();
@@ -78,11 +79,10 @@ const Menu = () => {
             <section key={category.id} id={category.id} className="scroll-mt-48" aria-labelledby={`${category.id}-title`}>
               <h2 id={`${category.id}-title`} className="font-display text-4xl text-gradient mb-2">{category.title}</h2>
               {category.subtitle && <p className="text-sm text-muted-foreground mb-6">{category.subtitle}</p>}
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list" aria-label={`Produits ${category.title}`}>
-                {category.items.map((item) => (
+                {sortMenuItemsByImage(category.items).map((item, itemIndex) => (
                   <article
-                    key={item.name}
+                    key={`${item.dbId ?? item.name}-${itemIndex}`}
                     role="listitem"
                     className="group h-full overflow-hidden rounded-2xl border border-white/10 bg-card/68 transition-all duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-[0_20px_35px_-24px_hsl(30_100%_50%_/_0.95)]"
                   >

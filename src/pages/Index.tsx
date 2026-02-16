@@ -4,6 +4,7 @@ import { Clock, MapPin, Truck, ChevronRight } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import { openingHours, deliveryZones, deliveryHours } from "@/data/menuData";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
+import DeliveryAreaSeo from "@/components/DeliveryAreaSeo";
 
 const Index = () => {
   const [menuCtaVariant, setMenuCtaVariant] = useState<"voir" | "decouvrir">("voir");
@@ -130,6 +131,12 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <div className="pb-20">
+        <div className="container mx-auto px-4">
+          <DeliveryAreaSeo />
+        </div>
+      </div>
     </div>
   );
 };
