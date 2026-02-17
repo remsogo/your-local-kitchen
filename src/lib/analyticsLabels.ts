@@ -36,6 +36,11 @@ export const formatInteractionLabel = (rawTarget: string) => {
   }
 
   if (rawTarget.startsWith("cta.contact.open_website")) return "Contact -> Ouvrir le site";
+  if (rawTarget.startsWith("cta.contact.form_mailto")) return "Contact -> Formulaire email";
+  if (rawTarget.startsWith("language.switch:")) {
+    const nextLocale = rawTarget.split(":")[1] || "fr";
+    return `Navigation -> Changer langue (${nextLocale.toUpperCase()})`;
+  }
 
   return rawTarget.replace(/[._:]+/g, " ").trim();
 };

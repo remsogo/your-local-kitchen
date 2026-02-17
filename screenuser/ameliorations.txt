@@ -1,70 +1,132 @@
-CHECKLIST AMELIORATIONS - PIZZ'ATIQ
-Date: 2026-02-16
+AUDIT + AMELIORATIONS APPLIQUEES
+Date: 2026-02-17
 
-Ce fichier suit uniquement les actions pertinentes pour ton contexte:
-- GitHub Pages
-- site vitrine snack (sans commande en ligne)
-- objectif principal = appels telephoniques
+Contexte
+- Site vitrine snack/pizza sur GitHub Pages
+- Objectif principal: appels telephoniques + visibilite locale
+- Pas de commande/paiement en ligne
 
-1) SEO / Github Pages
-[x] Migration HashRouter -> BrowserRouter
-[x] Fallback SPA GitHub Pages ajoute (public/404.html + script de restore dans index.html)
-[x] Canonical URL propres (sans #)
-[x] robots.txt coherent (crawl public + /admin bloque)
-[x] sitemap.xml complet (/ /menu /contact /mentions-legales)
-[x] CNAME ajoute (public/CNAME = pizzatiq.fr)
-[x] JSON-LD Restaurant enrichi (hasMap, areaServed, sameAs)
-[x] JSON-LD FAQ ajoute
+1) UX + accessibilite (applique)
+- Contraste augmente:
+  - texte principal plus clair
+  - texte secondaire remonte pour mieux respecter WCAG sur fond sombre
+- Hierarchie typo clarifiee:
+  - body en base plus lisible
+  - titres plus nets
+  - classes utilitaires text-body / text-body-muted
+- Barre sticky de commande:
+  - boutons de telephone centres visuellement
+  - labels FR/EN selon la langue active
+- Promo retravaillee:
+  - badge + encart plus contrastes
+  - fond distinctif
+  - animation legere (pulse) sans perte de lisibilite
 
-2) Performance front
-[x] Lazy loading des pages (dont Admin)
-[x] Decoupage de chunks Vite (manualChunks)
-[x] Build prod valide apres modifications
+2) Images + performances (applique)
+- WebP ajoute pour hero + logo:
+  - src/assets/hero-bg.webp
+  - src/assets/logo_pizzatiq.webp
+- Lazy loading deja conserve sur les images menu
+- Alt texts detailles sur les images menu (nom + description + categorie)
+- Compression image cote admin:
+  - upload converti en WebP (qualite ~0.82)
+  - redimensionnement max largeur 1600 px avant envoi Supabase
 
-3) Qualite code / robustesse
-[x] Erreurs lint bloquantes corrigees
-[x] Types any supprimes dans useMenu
-[x] Config tailwind en import ESM (plus de require)
-[x] Tests unitaires enrichis (analytics labels + filtre par page)
-[x] CI deploy: lint + test + build avant publication
+3) Livraison + conversion (applique)
+- Statut dynamique Ouvert/Ferme (heure Europe/Paris) sur accueil + contact
+- Carte interactive (OpenStreetMap + Leaflet):
+  - affichage rayon 20 km
+  - point restaurant + point adresse client
+- Verificateur d'adresse:
+  - geocodage adresse
+  - calcul distance
+  - eligibilite livraison oui/non
+  - estimation frais + minimum commande selon distance
 
-4) Analytics produit (admin)
-[x] Exclusion /admin des stats clients
-[x] Labels d'interactions plus lisibles dans dashboard
-[x] Filtre periode ajoute (7 / 30 / 90 jours)
-[x] Filtre page ajoute dans l'overview
-[x] Events menu tabs et CTA home ameliore (tracking + labels)
+4) SEO technique + structure (applique)
+- Hreflang FR/EN dynamiques par page
+- Canonical + OG/Twitter conserves et renforces
+- Sitemap enrichi:
+  - routes FR
+  - routes EN
+  - section actualites/news
+- Vite minification explicite:
+  - JS minify esbuild
+  - cssMinify active
+- H1/H2/H3:
+  - un H1 par page principale
+  - hierarchie de sections clarifiee
 
-5) UX conversion
-[x] Variante A/B du CTA menu en home (voir / decouvrir)
-[x] Dashboard admin structure en onglets (Menu / Sauces / Analytics)
+5) Contenu SEO (applique)
+- Version anglaise:
+  - /en
+  - /en/menu
+  - /en/contact
+  - /en/news
+  - /en/legal-notice
+- Page actualites/blog ajoutee:
+  - /actualites
+  - /en/news
+- Bloc avis rotatif (session):
+  - un avis mis en avant par visite
+  - a remplacer idealement par extraits GBP valides
 
-6) Google Analytics (GA4)
-Etat:
-[x] Tag GA detecte cote site
-[x] page_view envoye sur chaque changement de route SPA
-[x] Events click envoyes cote code (CTA, tabs menu, etc.)
-[x] Noms d'events GA4 explicites: call_click, menu_tab_click, home_menu_cta_click, home_contact_cta_click, website_click
+6) Legal + RGPD (applique)
+- Mentions legales completees avec sections obligatoires:
+  - editeur
+  - hebergement
+  - propriete intellectuelle
+  - donnees personnelles/RGPD
+  - cookies/analytics
+- Formulaire contact RGPD:
+  - consentement explicite obligatoire
+  - minimisation des donnees
+  - aucun stockage auto en base
+  - envoi via client email (mailto)
 
-Ce que je ne peux pas faire a ta place depuis ce repo:
-- Parametrer l'interface GA4 (conversions, rapports, explorations)
-- Donner les droits utilisateurs GA4
+7) Google Analytics - ce qui est fait dans le code
+- Tag GA4 present dans index.html
+- Page views SPA envoyees a chaque changement de route
+- Events clics explicites:
+  - call_click
+  - menu_tab_click
+  - home_menu_cta_click
+  - home_contact_cta_click
+  - website_click
+  - language_switch_click
+  - contact_form_mailto_click
+- Stockage parallele des events dans analytics_events (dashboard admin)
 
-Procedure GA4 (a faire dans l'interface Google Analytics):
-[ ] Admin -> Events: verifier reception de call_click, menu_tab_click, cta.*
-[ ] Admin -> Key events: marquer call_click en conversion
-[ ] Reports -> Library: creer un rapport "Intentions de commande"
-[ ] Rapport Intentions de commande:
-    Dimensions: eventName, pagePath
-    Metriques: eventCount, totalUsers
-[ ] Rapport "Acquisition locale":
-    Dimensions: pagePath, sessionSourceMedium, deviceCategory
-    Metriques: users, views, keyEvents
-[ ] Ajouter un segment Mobile + Organic Google pour lecture operationnelle
+8) Google Analytics - actions a faire dans l'interface GA4
+- Admin > Data Streams > verifier stream Web actif (G-66NXKHP23T)
+- Admin > Events:
+  - verifier remontee des events ci-dessus
+- Admin > Key events:
+  - marquer en conversion:
+    - call_click (priorite 1)
+    - home_menu_cta_click (priorite 2)
+    - contact_form_mailto_click (priorite 3, option)
+- Reports/Explore:
+  - rapport \"Intentions de commande\":
+    - dimensions: eventName, pagePath
+    - metriques: eventCount, users
+  - rapport \"Parcours mobile\":
+    - dimensions: deviceCategory, pagePath
+    - metriques: views, keyEvents
 
-7) Validation executee
-[x] npm run lint
-[x] npm run test -- --run
-[x] npm run build
+9) Limite importante GitHub Pages (a connaitre)
+- En HTTP brut:
+  - /menu, /contact, /en/menu peuvent retourner 404 serveur
+- En navigateur:
+  - la route est restauree ensuite via fallback SPA
+- Impact:
+  - certains bots sans JS peuvent mal interpreter les routes internes
+- Solution ideale long terme:
+  - hebergement avec rewrites serveur 200 (Netlify / Vercel / Cloudflare Pages)
 
-Resultat global: OK. Les ameliorations prioritaires et pertinentes sont appliquees.
+10) Etat des verifications
+- Lint: OK (warnings UI deja existants, non bloquants)
+- Tests unitaires/integration: OK
+- Build production: OK
+- Captures visuelles local + prod generees:
+  - screenuser/compare/current/*

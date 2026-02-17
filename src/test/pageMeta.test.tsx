@@ -59,4 +59,22 @@ describe("PageMeta", () => {
       );
     });
   });
+
+  it("injects hreflang alternates for localized routes", async () => {
+    render(
+      <MemoryRouter initialEntries={["/menu"]}>
+        <PageMeta />
+        <Routes>
+          <Route path="/menu" element={<div>Menu</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const frAlt = document.querySelector('link[rel="alternate"][hreflang="fr"]') as HTMLLinkElement | null;
+      const enAlt = document.querySelector('link[rel="alternate"][hreflang="en"]') as HTMLLinkElement | null;
+      expect(frAlt?.href).toContain("https://www.pizzatiq.fr/menu");
+      expect(enAlt?.href).toContain("https://www.pizzatiq.fr/en/menu");
+    });
+  });
 });

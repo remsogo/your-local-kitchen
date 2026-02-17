@@ -15,6 +15,8 @@ describe("formatInteractionLabel", () => {
     expect(formatInteractionLabel("cta.home.open_menu:decouvrir")).toBe("Accueil -> CTA Decouvrir le menu");
     expect(formatInteractionLabel("cta.contact.call:0684069385")).toBe("Contact -> Appel (0684069385)");
     expect(formatInteractionLabel("cta.sticky.call:0134849346")).toBe("Bandeau fixe -> Appel (0134849346)");
+    expect(formatInteractionLabel("cta.contact.form_mailto")).toBe("Contact -> Formulaire email");
+    expect(formatInteractionLabel("language.switch:en")).toBe("Navigation -> Changer langue (EN)");
   });
 
   it("keeps unknown ids readable", () => {

@@ -4,8 +4,12 @@ import { useMenu } from "@/hooks/useMenu";
 import { defaultSauces, useSauces } from "@/hooks/useSauces";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
 import { sortMenuItemsByImage } from "@/lib/menuSort";
+import { getLocaleFromPathname } from "@/lib/i18n";
+import { useLocation } from "react-router-dom";
 
 const Menu = () => {
+  const location = useLocation();
+  const locale = getLocaleFromPathname(location.pathname);
   const { menu, loading } = useMenu();
   const { sauces } = useSauces();
   const [activeCategory, setActiveCategory] = useState<string>("");
@@ -16,6 +20,32 @@ const Menu = () => {
   const displayedSauces = sauceNames.length > 0 ? sauceNames : defaultSauces;
 
   const activeCat = activeCategory || menu[0]?.id || "";
+  const labels =
+    locale === "fr"
+      ? {
+          title: "Notre Menu",
+          intro:
+            "Decouvrez nos pizzas, burgers, sandwichs et tacos prepares a Sonchamp, disponibles sur place, a emporter et en livraison.",
+          loading: "Chargement du menu...",
+          saucesTitle: "Bar a sauces",
+          saucesDescMobile: "Sauces disponibles sur demande avec votre commande.",
+          saucesDescDesktop: "Infos rapides (pas de selection client sur le site).",
+          reduce: "Reduire",
+          expand: "Afficher",
+          closeImage: "Fermer l'image",
+        }
+      : {
+          title: "Our Menu",
+          intro:
+            "Discover our pizzas, burgers, sandwiches and tacos prepared in Sonchamp for dine-in, takeaway and delivery.",
+          loading: "Loading menu...",
+          saucesTitle: "Sauce bar",
+          saucesDescMobile: "Sauces available on request with your order.",
+          saucesDescDesktop: "Quick info only (no online sauce selection).",
+          reduce: "Collapse",
+          expand: "Expand",
+          closeImage: "Close image",
+        };
 
   useEffect(() => {
     if (!zoomImage) return;
@@ -29,24 +59,37 @@ const Menu = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-32 flex items-center justify-center">
-        <p className="text-muted-foreground">Chargement du menu...</p>
+        <p className="text-muted-foreground">{labels.loading}</p>
       </div>
     );
   }
 
+  const imageAltForItem = (categoryTitle: string, itemName: string, itemDescription: string) =>
+    locale === "fr"
+      ? `${itemName} - ${itemDescription}. Categorie ${categoryTitle} du menu Pizz'Atiq`
+      : `${itemName} - ${itemDescription}. ${categoryTitle} category from Pizz'Atiq menu`;
+
   return (
     <div className="min-h-screen pb-16 pt-32 md:pb-28">
       <div className="container mx-auto px-4">
-        <h1 className="mb-8 text-center font-display text-5xl text-gradient sm:text-6xl">Notre Menu</h1>
+        <h1 className="mb-8 text-center font-display text-5xl text-gradient sm:text-6xl">{labels.title}</h1>
         <section aria-labelledby="menu-local-heading" className="mx-auto mb-8 max-w-3xl">
-          <h2 id="menu-local-heading" className="sr-only">Menu local a Sonchamp</h2>
-          <p className="text-center text-base text-muted-foreground">
-            Decouvrez nos pizzas, burgers, sandwichs et tacos prepares a Sonchamp, disponibles sur place, a emporter et en livraison.
+          <h2 id="menu-local-heading" className="sr-only">
+            {locale === "fr" ? "Menu local a Sonchamp" : "Local menu in Sonchamp"}
+          </h2>
+          <p className="text-center text-body-muted">{labels.intro}</p>
+        </section>
+
+        <section className="mx-auto mb-8 max-w-3xl rounded-xl border border-white/10 bg-card/40 px-4 py-3" aria-label={locale === "fr" ? "Aide visuelle des prix" : "Price visual hint"}>
+          <p className="text-sm text-muted-foreground">
+            {locale === "fr"
+              ? "Astuce: chaque carte affiche les prix en haut a droite et le nom du produit dans la zone basse de l'image."
+              : "Tip: each card shows prices in the top-right corner and the item name in the lower image area."}
           </p>
         </section>
 
         <nav
-          aria-label="Categories du menu"
+          aria-label={locale === "fr" ? "Categories du menu" : "Menu categories"}
           className="sticky top-28 z-30 mb-12 rounded-xl border border-white/10 bg-background/86 px-3 py-4 backdrop-blur-md"
         >
           <div className="flex flex-wrap justify-center gap-2">
@@ -58,7 +101,7 @@ const Menu = () => {
                   document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
                   trackAnalyticsEvent({
                     event_type: "click",
-                    page_path: "/menu",
+                    page_path: location.pathname,
                     target: `menu.tab.select:${cat.title}`,
                   });
                 }}
@@ -90,16 +133,21 @@ const Menu = () => {
                       <button
                         type="button"
                         className="relative block h-full w-full overflow-hidden"
-                        onClick={() => setZoomImage({ src: item.imageUrl!, alt: item.name })}
-                        aria-label={`Agrandir la photo de ${item.name}`}
+                        onClick={() =>
+                          setZoomImage({
+                            src: item.imageUrl!,
+                            alt: imageAltForItem(category.title, item.name, item.description),
+                          })
+                        }
+                        aria-label={locale === "fr" ? `Agrandir la photo de ${item.name}` : `Open larger image of ${item.name}`}
                       >
                         <img
                           src={item.imageUrl}
-                          alt={item.name}
+                          alt={imageAltForItem(category.title, item.name, item.description)}
                           className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/68 via-black/30 to-black/6" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-black/24 to-black/5" />
                         <div className="absolute top-3 right-3 left-3 flex flex-nowrap justify-end gap-1 overflow-x-auto">
                           {item.prices.map((p) => (
                             <span
@@ -111,11 +159,11 @@ const Menu = () => {
                             </span>
                           ))}
                         </div>
-                        <div className="absolute inset-x-3 bottom-3 text-left">
-                          <h3 className="text-base font-semibold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                        <div className="absolute inset-x-3 bottom-3 rounded-lg border border-white/30 bg-black/24 p-2 text-left backdrop-blur-[1px]">
+                          <h3 className="text-[1.02rem] font-semibold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                             {item.name}
                           </h3>
-                          <p className="mt-1 text-xs text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                          <p className="mt-1 text-[0.82rem] text-white/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                             {item.description}
                           </p>
                         </div>
@@ -147,10 +195,10 @@ const Menu = () => {
         </div>
       </div>
 
-      <section className="mx-auto mt-8 max-w-4xl px-4 md:hidden" aria-label="Informations sauces">
+      <section className="mx-auto mt-8 max-w-4xl px-4 md:hidden" aria-label={locale === "fr" ? "Informations sauces" : "Sauce information"}>
         <div className="rounded-xl border border-white/10 bg-card/65 px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Bar a sauces</p>
-          <p className="mt-1 text-sm text-muted-foreground">Sauces disponibles sur demande avec votre commande.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">{labels.saucesTitle}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{labels.saucesDescMobile}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {displayedSauces.map((sauce) => (
               <span
@@ -166,21 +214,21 @@ const Menu = () => {
 
       <aside
         className="fixed bottom-0 left-0 right-0 z-40 hidden border-t border-white/10 bg-background/92 backdrop-blur-md md:block"
-        aria-label="Informations sauces"
+        aria-label={locale === "fr" ? "Informations sauces" : "Sauce information"}
       >
         <div className="mx-auto max-w-5xl px-4 py-2.5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Bar a sauces</p>
-              <p className="text-xs text-muted-foreground">Infos rapides (pas de selection client sur le site).</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">{labels.saucesTitle}</p>
+              <p className="text-xs text-muted-foreground">{labels.saucesDescDesktop}</p>
             </div>
             <button
               type="button"
               onClick={() => setSaucesExpanded((prev) => !prev)}
-              className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-card/70 px-2 py-1 text-xs text-foreground hover:bg-card"
+              className="focus-ring inline-flex items-center gap-1 rounded-md border border-border/70 bg-card/70 px-2 py-1 text-xs text-foreground hover:bg-card"
               aria-expanded={saucesExpanded}
             >
-              {saucesExpanded ? "Reduire" : "Afficher"}
+              {saucesExpanded ? labels.reduce : labels.expand}
               {saucesExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
             </button>
           </div>
@@ -207,9 +255,9 @@ const Menu = () => {
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4" onClick={() => setZoomImage(null)}>
           <button
             type="button"
-            className="absolute right-4 top-4 rounded-full bg-background/80 p-2 text-foreground"
+            className="focus-ring absolute right-4 top-4 rounded-full bg-background/80 p-2 text-foreground"
             onClick={() => setZoomImage(null)}
-            aria-label="Fermer l'image"
+            aria-label={labels.closeImage}
           >
             <X size={18} />
           </button>

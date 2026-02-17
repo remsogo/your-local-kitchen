@@ -60,6 +60,24 @@ export const toGaClickPayload = (target: string, pagePath: string): GaClickPaylo
     };
   }
 
+  if (target.startsWith("cta.contact.form_mailto")) {
+    return {
+      eventName: "contact_form_mailto_click",
+      params: { page_path: pagePath },
+    };
+  }
+
+  if (target.startsWith("language.switch:")) {
+    const locale = target.split(":")[1] || "fr";
+    return {
+      eventName: "language_switch_click",
+      params: {
+        page_path: pagePath,
+        locale: toSafeParamValue(locale),
+      },
+    };
+  }
+
   const callMatch = target.match(/^cta\.(sticky|contact)\.(?:call|order_call):(.+)$/);
   if (callMatch) {
     const source = callMatch[1];

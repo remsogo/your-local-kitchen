@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    minify: "esbuild",
+    cssMinify: true,
     rollupOptions: {
       output: {
         // Keep critical route JS small on mobile by splitting heavy dependencies.

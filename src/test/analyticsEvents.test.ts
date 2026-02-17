@@ -46,4 +46,25 @@ describe("toGaClickPayload", () => {
       },
     });
   });
+
+  it("maps language switch clicks to dedicated event", () => {
+    const payload = toGaClickPayload("language.switch:en", "/menu");
+    expect(payload).toEqual({
+      eventName: "language_switch_click",
+      params: {
+        page_path: "/menu",
+        locale: "en",
+      },
+    });
+  });
+
+  it("maps contact form mailto action", () => {
+    const payload = toGaClickPayload("cta.contact.form_mailto", "/contact");
+    expect(payload).toEqual({
+      eventName: "contact_form_mailto_click",
+      params: {
+        page_path: "/contact",
+      },
+    });
+  });
 });

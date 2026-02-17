@@ -10,6 +10,28 @@ import { useAnalyticsOverview } from "@/hooks/useAnalyticsOverview";
 import { formatInteractionLabel } from "@/lib/analyticsLabels";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const compressImageBeforeUpload = async (file: File): Promise<File> => {
+  if (!file.type.startsWith("image/")) return file;
+
+  const imageBitmap = await createImageBitmap(file);
+  const maxWidth = 1600;
+  const ratio = Math.min(1, maxWidth / imageBitmap.width);
+  const targetWidth = Math.max(1, Math.round(imageBitmap.width * ratio));
+  const targetHeight = Math.max(1, Math.round(imageBitmap.height * ratio));
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return file;
+
+  // Convert uploads to webp to keep menu media lightweight on mobile.
+  ctx.drawImage(imageBitmap, 0, 0, targetWidth, targetHeight);
+  imageBitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.82));
+  if (!blob) return file;
+  return new File([blob], `${file.name.replace(/\.[^/.]+$/, "")}.webp`, { type: "image/webp" });
+};
+
 const Admin = () => {
   const { authenticated, isAdmin, loading: authLoading, email, setEmail, password, setPassword, loginError, handleLogin, handleLogout } = useAdminAuth();
   const { menu, loading: menuLoading, refetch } = useMenu();
@@ -201,14 +223,15 @@ const Admin = () => {
     setUploading(true);
     setAdminMessage("");
     try {
-      const fileExt = file.name.split(".").pop();
+      const preparedFile = await compressImageBeforeUpload(file);
+      const fileExt = preparedFile.name.split(".").pop() || "webp";
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `menu-images/${fileName}`;
 
       // Upload first, then compute a permanent public URL for preview/storage.
       const { error: uploadError } = await supabase.storage
         .from("menu-images")
-        .upload(filePath, file);
+        .upload(filePath, preparedFile);
 
       if (uploadError) {
         console.error("[Admin] upload image failed", uploadError);

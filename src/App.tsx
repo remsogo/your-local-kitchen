@@ -13,6 +13,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Menu = lazy(() => import("./pages/Menu"));
 const Contact = lazy(() => import("./pages/Contact"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
+const News = lazy(() => import("./pages/News"));
 const Admin = lazy(() => import("./pages/Admin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -39,7 +40,15 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/actualites" element={<News />} />
               <Route path="/mentions-legales" element={<MentionsLegales />} />
+
+              <Route path="/en" element={<Index />} />
+              <Route path="/en/menu" element={<Menu />} />
+              <Route path="/en/contact" element={<Contact />} />
+              <Route path="/en/news" element={<News />} />
+              <Route path="/en/legal-notice" element={<MentionsLegales />} />
+
               <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
