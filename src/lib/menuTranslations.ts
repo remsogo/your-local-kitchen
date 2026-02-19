@@ -7,6 +7,8 @@ const normalizeKey = (value: string) =>
   stripDiacritics(value)
     .trim()
     .toLowerCase()
+    .replace(/œ/g, "oe")
+    .replace(/æ/g, "ae")
     .replace(/[’']/g, "'")
     .replace(/\s+/g, " ");
 
@@ -197,11 +199,17 @@ const FALLBACK_TERM_EN = toNormalizedMap({
   parmesan: "parmesan",
   raclette: "raclette cheese",
   chevre: "goat cheese",
+  jambon: "ham",
+  jambons: "hams",
+  fromage: "cheese",
+  fromages: "cheeses",
   tomate: "tomato",
   salade: "lettuce",
   oignon: "onion",
   frites: "fries",
   thon: "tuna",
+  "œuf": "egg",
+  "œufs": "eggs",
   oeufs: "eggs",
   oeuf: "egg",
   olives: "olives",
@@ -245,18 +253,40 @@ const ACCENT_CHAR_PATTERN: Record<string, string> = {
 };
 
 const termToAccentInsensitiveRegex = (term: string) => {
-  const pattern = term
-    .split("")
-    .map((char) => {
+  const patternParts: string[] = [];
+  for (let i = 0; i < term.length; i += 1) {
+    const twoChars = term.slice(i, i + 2).toLowerCase();
+    if (twoChars === "oe") {
+      // Support oe ligature found in live menu content (oeuf / œuf).
+      patternParts.push("(oe|œ)");
+      i += 1;
+      continue;
+    }
+    if (twoChars === "ae") {
+      patternParts.push("(ae|æ)");
+      i += 1;
+      continue;
+    }
+
+    const char = term[i];
+    if (!char) continue;
       const lower = char.toLowerCase();
-      if (ACCENT_CHAR_PATTERN[lower]) return ACCENT_CHAR_PATTERN[lower];
-      if (char === " ") return "\\s+";
-      if (char === "'") return "['’]";
-      if (char === ".") return "\\.";
-      if (char === "-") return "\\s*-\\s*";
-      return escapeRegExp(char);
-    })
-    .join("");
+      if (ACCENT_CHAR_PATTERN[lower]) {
+        patternParts.push(ACCENT_CHAR_PATTERN[lower]);
+      } else if (char === " ") {
+        patternParts.push("\\s+");
+      } else if (char === "'") {
+        patternParts.push("['’]");
+      } else if (char === ".") {
+        patternParts.push("\\.");
+      } else if (char === "-") {
+        patternParts.push("\\s*-\\s*");
+      } else {
+        patternParts.push(escapeRegExp(char));
+      }
+  }
+
+  const pattern = patternParts.join("");
 
   return new RegExp(`(^|[^\\p{L}\\p{N}])(${pattern})(?=$|[^\\p{L}\\p{N}])`, "giu");
 };

@@ -40,4 +40,25 @@ describe("menu translations", () => {
     expect(localized[0]?.items[0]?.name).toBe("Kebab");
     expect(localized[0]?.items[0]?.description).toBe("cream, mozzarella, kebab meat strips, onion, artichoke");
   });
+
+  it("translates mixed accent and ligature ingredients from admin data", () => {
+    const customMenu: MenuCategory[] = [
+      {
+        id: "custom-accent",
+        title: "Pizzas",
+        items: [
+          {
+            name: "Reine",
+            description: "tomate, mozzarella, jambon, œuf, champignon ou poulet ou 4 fromages ou v.hachée",
+            prices: [{ label: "Senior", price: "12,50 EUR" }],
+          },
+        ],
+      },
+    ];
+
+    const localized = localizeMenu(customMenu, "en");
+    expect(localized[0]?.items[0]?.description).toBe(
+      "Tomato, mozzarella, ham, egg, mushroom or chicken or four cheeses or minced beef",
+    );
+  });
 });
