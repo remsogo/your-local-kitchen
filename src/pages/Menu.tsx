@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useMenu } from "@/hooks/useMenu";
 import { defaultSauces, useSauces } from "@/hooks/useSauces";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
 import { sortMenuItemsByImage } from "@/lib/menuSort";
 import { getLocaleFromPathname } from "@/lib/i18n";
+import { localizeMenu, localizeSauceNames } from "@/lib/menuTranslations";
 import { useLocation } from "react-router-dom";
 
 const Menu = () => {
@@ -18,8 +19,10 @@ const Menu = () => {
   // Fallback list keeps the UI usable if the sauces table is empty/unavailable.
   const sauceNames = sauces.filter((s) => s.is_active).map((s) => s.name.trim()).filter(Boolean);
   const displayedSauces = sauceNames.length > 0 ? sauceNames : defaultSauces;
+  const localizedMenu = useMemo(() => localizeMenu(menu, locale), [menu, locale]);
+  const localizedSauces = useMemo(() => localizeSauceNames(displayedSauces, locale), [displayedSauces, locale]);
 
-  const activeCat = activeCategory || menu[0]?.id || "";
+  const activeCat = activeCategory || localizedMenu[0]?.id || "";
   const labels =
     locale === "fr"
       ? {
@@ -70,9 +73,11 @@ const Menu = () => {
       : `${itemName} - ${itemDescription}. ${categoryTitle} category from Pizz'Atiq menu`;
 
   return (
-    <div className="min-h-screen pb-16 pt-32 md:pb-28">
+    <div className="min-h-screen pb-16 pt-32 md:pb-28" data-testid="menu-page">
       <div className="container mx-auto px-4">
-        <h1 className="mb-8 text-center font-display text-5xl text-gradient sm:text-6xl">{labels.title}</h1>
+        <h1 className="mb-8 text-center font-display text-5xl text-gradient sm:text-6xl" data-testid="menu-title">
+          {labels.title}
+        </h1>
         <section aria-labelledby="menu-local-heading" className="mx-auto mb-8 max-w-3xl">
           <h2 id="menu-local-heading" className="sr-only">
             {locale === "fr" ? "Menu local a Sonchamp" : "Local menu in Sonchamp"}
@@ -90,12 +95,14 @@ const Menu = () => {
 
         <nav
           aria-label={locale === "fr" ? "Categories du menu" : "Menu categories"}
+          data-testid="menu-categories-nav"
           className="sticky top-28 z-30 mb-12 rounded-xl border border-white/10 bg-background/86 px-3 py-4 backdrop-blur-md"
         >
           <div className="flex flex-wrap justify-center gap-2">
-            {menu.map((cat) => (
+            {localizedMenu.map((cat) => (
               <button
                 key={cat.id}
+                data-testid={`menu-category-button-${cat.id}`}
                 onClick={() => {
                   setActiveCategory(cat.id);
                   document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -118,11 +125,21 @@ const Menu = () => {
         </nav>
 
         <div className="mx-auto max-w-5xl space-y-16">
-          {menu.map((category) => (
-            <section key={category.id} id={category.id} className="scroll-mt-48" aria-labelledby={`${category.id}-title`}>
+          {localizedMenu.map((category) => (
+            <section
+              key={category.id}
+              id={category.id}
+              data-testid={`menu-category-section-${category.id}`}
+              className="scroll-mt-48"
+              aria-labelledby={`${category.id}-title`}
+            >
               <h2 id={`${category.id}-title`} className="font-display text-4xl text-gradient mb-2">{category.title}</h2>
               {category.subtitle && <p className="text-sm text-muted-foreground mb-6">{category.subtitle}</p>}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list" aria-label={`Produits ${category.title}`}>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                role="list"
+                aria-label={locale === "fr" ? `Produits ${category.title}` : `Items in ${category.title}`}
+              >
                 {sortMenuItemsByImage(category.items).map((item, itemIndex) => (
                   <article
                     key={`${item.dbId ?? item.name}-${itemIndex}`}
@@ -200,7 +217,7 @@ const Menu = () => {
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">{labels.saucesTitle}</p>
           <p className="mt-1 text-sm text-muted-foreground">{labels.saucesDescMobile}</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {displayedSauces.map((sauce) => (
+            {localizedSauces.map((sauce) => (
               <span
                 key={sauce}
                 className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-foreground"
@@ -238,7 +255,7 @@ const Menu = () => {
             }`}
           >
             <div className="flex flex-wrap gap-2">
-              {displayedSauces.map((sauce) => (
+              {localizedSauces.map((sauce) => (
                 <span
                   key={sauce}
                   className="rounded-full border border-border/70 bg-card px-3 py-1 text-xs font-medium text-foreground"

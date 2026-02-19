@@ -361,7 +361,7 @@ const Admin = () => {
   if (!authenticated || !isAdmin) {
     return (
       <div className="min-h-screen pt-40 sm:pt-32 flex items-center justify-center">
-        <form onSubmit={handleLogin} className="bg-card rounded-xl p-8 max-w-sm w-full card-glow">
+        <form onSubmit={handleLogin} className="bg-card rounded-xl p-8 max-w-sm w-full card-glow" data-testid="admin-login-form">
           <div className="flex items-center gap-3 mb-6">
             <Lock size={24} className="text-primary" />
             <h1 className="font-display text-3xl text-foreground">Admin</h1>
@@ -372,6 +372,7 @@ const Admin = () => {
           <input
             type="email"
             placeholder="Email"
+            data-testid="admin-login-email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full bg-secondary text-foreground rounded-lg px-4 py-3 mb-3 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
@@ -379,12 +380,14 @@ const Admin = () => {
           <input
             type="password"
             placeholder="Mot de passe"
+            data-testid="admin-login-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full bg-secondary text-foreground rounded-lg px-4 py-3 mb-4 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button
             type="submit"
+            data-testid="admin-login-submit"
             className="w-full bg-primary text-primary-foreground rounded-lg py-3 font-semibold hover:opacity-90 transition-opacity"
           >
             Connexion
@@ -398,7 +401,7 @@ const Admin = () => {
     <div className="min-h-screen pt-40 pb-16 sm:pt-32">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="font-display text-5xl text-gradient">Tableau de bord</h1>
+          <h1 className="font-display text-5xl text-gradient" data-testid="admin-dashboard-title">Tableau de bord</h1>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-lg px-4 py-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"

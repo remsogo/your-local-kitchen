@@ -10,6 +10,16 @@ import ReviewHighlight from "@/components/ReviewHighlight";
 import { getBusinessStatus } from "@/lib/businessStatus";
 import { getLocaleFromPathname, localizePath } from "@/lib/i18n";
 
+const openingDayLabelsEn: Record<string, string> = {
+  Lundi: "Monday",
+  Mardi: "Tuesday",
+  Mercredi: "Wednesday",
+  Jeudi: "Thursday",
+  Vendredi: "Friday",
+  Samedi: "Saturday",
+  Dimanche: "Sunday",
+};
+
 const Index = () => {
   const location = useLocation();
   const locale = getLocaleFromPathname(location.pathname);
@@ -43,6 +53,7 @@ const Index = () => {
             heading: "Pizz'Atiq",
             description:
               "Snack local a Sonchamp: pizzas, burgers, sandwichs et tacos, sur place, a emporter et en livraison.",
+            heroAlt: "Pizza artisanale cuite au four a Sonchamp, specialite de Pizz'Atiq",
             promoBadge: "Promo lun-jeu",
             promoText:
               "OFFRES PIZZA SENIOR (du lundi au jeudi) : 1 pizza Senior achetee = la 2eme Senior a -50% / 2 pizzas Senior achetees = la 3eme Senior offerte (a emporter seulement).",
@@ -59,6 +70,7 @@ const Index = () => {
             heading: "Pizz'Atiq",
             description:
               "Local snack in Sonchamp: pizzas, burgers, sandwiches and tacos for dine-in, takeaway and delivery.",
+            heroAlt: "Wood-fired artisanal pizza in Sonchamp, Pizz'Atiq specialty",
             promoBadge: "Mon-Thu promo",
             promoText:
               "SENIOR PIZZA OFFER (Monday to Thursday): buy 1 Senior pizza, get 50% off the second / buy 2, get the third free (takeaway only).",
@@ -73,6 +85,14 @@ const Index = () => {
           },
     [locale, menuCtaVariant],
   );
+  const localizedOpeningHours = useMemo(
+    () =>
+      openingHours.map((item) => ({
+        ...item,
+        day: locale === "fr" ? item.day : (openingDayLabelsEn[item.day] ?? item.day),
+      })),
+    [locale],
+  );
 
   const menuPath = localizePath("menu", locale);
   const contactPath = localizePath("contact", locale);
@@ -81,13 +101,13 @@ const Index = () => {
     : "border-red-400/40 bg-red-500/15 text-red-300";
 
   return (
-    <div className="min-h-screen pt-32">
+    <div className="min-h-screen pt-32" data-testid="home-page">
       <section className="relative isolate flex min-h-[calc(100vh-7.5rem)] items-center justify-center overflow-hidden">
         <picture>
           <source srcSet={heroBgWebp} type="image/webp" />
           <img
             src={heroBg}
-            alt="Pizza artisanale cuite au four a Sonchamp, specialite de Pizz'Atiq"
+            alt={labels.heroAlt}
             className="absolute inset-0 h-full w-full object-cover object-center md:scale-[1.03]"
             fetchPriority="high"
           />
@@ -96,7 +116,10 @@ const Index = () => {
         <div className="absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
 
         <div className="relative z-10 w-full max-w-4xl animate-fade-in px-4 text-center">
-          <h1 className="mb-3 font-display text-6xl text-gradient drop-shadow-[0_0_18px_hsl(30_100%_50%_/_0.22)] sm:text-8xl">
+          <h1
+            className="mb-3 font-display text-6xl text-gradient drop-shadow-[0_0_18px_hsl(30_100%_50%_/_0.22)] sm:text-8xl"
+            data-testid="home-title"
+          >
             {labels.heading}
           </h1>
           <p className="mx-auto mb-4 max-w-2xl text-base text-foreground/95 sm:text-[1.2rem]">
@@ -117,6 +140,7 @@ const Index = () => {
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               to={menuPath}
+              data-testid="home-cta-menu"
               onClick={() =>
                 trackAnalyticsEvent({
                   event_type: "click",
@@ -130,6 +154,7 @@ const Index = () => {
             </Link>
             <Link
               to={contactPath}
+              data-testid="home-cta-contact"
               onClick={() =>
                 trackAnalyticsEvent({ event_type: "click", page_path: location.pathname, target: "cta.home.open_contact" })
               }
@@ -143,7 +168,7 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="py-20" data-testid="home-opening-hours">
         <div className="container mx-auto px-4">
           <div className="section-shell mx-auto max-w-5xl rounded-2xl p-6 sm:p-8">
             <h2 className="mb-10 text-center font-display text-4xl text-gradient sm:text-5xl">
@@ -152,7 +177,7 @@ const Index = () => {
             </h2>
             <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-background/45 p-5 backdrop-blur-sm">
               <div className="space-y-3">
-                {openingHours.map((item) => (
+                {localizedOpeningHours.map((item) => (
                   <div key={item.day} className="flex justify-between text-sm">
                     <span className="font-medium text-foreground">{item.day}</span>
                     <span className="text-muted-foreground">{item.hours}</span>
@@ -164,7 +189,7 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-20">
+      <section className="pb-20" data-testid="home-delivery">
         <div className="container mx-auto px-4">
           <div className="section-shell mx-auto max-w-5xl rounded-2xl p-6 sm:p-8">
             <h2 className="mb-4 text-center font-display text-4xl text-gradient sm:text-5xl">

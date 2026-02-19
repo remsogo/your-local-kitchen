@@ -103,7 +103,7 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
   };
 
   return (
-    <section className="section-shell rounded-2xl p-5 sm:p-6" aria-labelledby="delivery-map-title">
+    <section className="section-shell rounded-2xl p-5 sm:p-6" aria-labelledby="delivery-map-title" data-testid="delivery-map">
       <h2 id="delivery-map-title" className="font-display text-4xl text-gradient sm:text-5xl">
         {text.title}
       </h2>
@@ -151,7 +151,7 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
         </MapContainer>
       </div>
 
-      <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={handleSubmit}>
+      <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={handleSubmit} data-testid="delivery-map-form">
         <label className="sr-only" htmlFor="delivery-address">
           {text.button}
         </label>
@@ -160,6 +160,7 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
           <input
             id="delivery-address"
             type="text"
+            data-testid="delivery-address-input"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             placeholder={text.placeholder}
@@ -168,6 +169,7 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
         </div>
         <button
           type="submit"
+          data-testid="delivery-address-submit"
           disabled={loading || !address.trim()}
           className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg border border-primary/55 bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-55"
         >
@@ -183,7 +185,7 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
       )}
 
       {result && (
-        <div className="mt-4 rounded-xl border border-border/70 bg-card/80 p-4">
+        <div className="mt-4 rounded-xl border border-border/70 bg-card/80 p-4" data-testid="delivery-map-result">
           <p className="text-sm font-semibold text-foreground">
             {text.found}: <span className="text-primary">{result.displayName}</span>
           </p>

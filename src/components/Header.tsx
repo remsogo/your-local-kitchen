@@ -5,22 +5,22 @@ import logoPizzatiq from "@/assets/logo_pizzatiq.webp";
 import { getLocaleFromPathname, Locale, toLanguageRoute } from "@/lib/i18n";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
 
-type NavLinkItem = { to: string; label: string };
+type NavLinkItem = { to: string; label: string; testId: string };
 
 const navLinksByLocale: Record<Locale, NavLinkItem[]> = {
   fr: [
-    { to: "/", label: "Accueil" },
-    { to: "/menu", label: "Menu" },
-    { to: "/contact", label: "Contact" },
-    { to: "/actualites", label: "Actualites" },
-    { to: "/mentions-legales", label: "Mentions legales" },
+    { to: "/", label: "Accueil", testId: "nav-link-home" },
+    { to: "/menu", label: "Menu", testId: "nav-link-menu" },
+    { to: "/contact", label: "Contact", testId: "nav-link-contact" },
+    { to: "/actualites", label: "Actualites", testId: "nav-link-news" },
+    { to: "/mentions-legales", label: "Mentions legales", testId: "nav-link-legal" },
   ],
   en: [
-    { to: "/en", label: "Home" },
-    { to: "/en/menu", label: "Menu" },
-    { to: "/en/contact", label: "Contact" },
-    { to: "/en/news", label: "News" },
-    { to: "/en/legal-notice", label: "Legal Notice" },
+    { to: "/en", label: "Home", testId: "nav-link-home" },
+    { to: "/en/menu", label: "Our Menu", testId: "nav-link-menu" },
+    { to: "/en/contact", label: "Contact", testId: "nav-link-contact" },
+    { to: "/en/news", label: "News", testId: "nav-link-news" },
+    { to: "/en/legal-notice", label: "Legal Notice", testId: "nav-link-legal" },
   ],
 };
 
@@ -39,12 +39,19 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/80 bg-background/90 shadow-[0_10px_28px_-24px_hsl(30_100%_50%_/_0.6)] backdrop-blur-md">
+    <header
+      data-testid="site-header"
+      className="fixed top-0 left-0 right-0 z-50 border-b border-border/80 bg-background/90 shadow-[0_10px_28px_-24px_hsl(30_100%_50%_/_0.6)] backdrop-blur-md"
+    >
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to={homePath} className="group inline-flex items-center gap-2">
+        <Link to={homePath} className="group inline-flex items-center gap-2" data-testid="brand-link-home">
           <img
             src={logoPizzatiq}
-            alt="Logo Pizz'Atiq, snack pizza et kebab a Sonchamp"
+            alt={
+              locale === "fr"
+                ? "Logo Pizz'Atiq, snack pizza et kebab a Sonchamp"
+                : "Pizz'Atiq logo, pizza, kebab and snack in Sonchamp"
+            }
             className="h-10 w-10 rounded-lg border border-border/70 bg-card/95 p-0.5 object-contain shadow-md transition-transform duration-300 group-hover:scale-105 sm:h-11 sm:w-11"
           />
           <span className="font-display text-[2.02rem] leading-none text-gradient tracking-[0.04em] sm:text-[2.22rem]">
@@ -52,11 +59,12 @@ const Header = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-6 md:flex" data-testid="desktop-nav">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
+              data-testid={link.testId}
               className={`relative text-sm font-medium transition-colors hover:text-primary ${
                 isLinkActive(link.to)
                   ? "text-primary after:absolute after:-bottom-[10px] after:left-0 after:h-[2px] after:w-full after:rounded-full after:bg-primary"
@@ -68,6 +76,7 @@ const Header = () => {
           ))}
           <Link
             to={switchPath}
+            data-testid="language-switch-desktop"
             onClick={() =>
               trackAnalyticsEvent({
                 event_type: "click",
@@ -85,16 +94,18 @@ const Header = () => {
         <button
           className="rounded-md p-1.5 text-foreground transition-colors hover:bg-secondary md:hidden"
           onClick={() => setOpen(!open)}
-          aria-label="Menu"
+          aria-label={locale === "fr" ? "Menu de navigation" : "Navigation menu"}
+          data-testid="mobile-nav-toggle"
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {open && (
-        <nav className="border-b border-border/80 bg-background/98 md:hidden">
+        <nav className="border-b border-border/80 bg-background/98 md:hidden" data-testid="mobile-nav-panel">
           <Link
             to={switchPath}
+            data-testid="language-switch-mobile"
             onClick={() => {
               setOpen(false);
               trackAnalyticsEvent({
@@ -111,6 +122,7 @@ const Header = () => {
             <Link
               key={link.to}
               to={link.to}
+              data-testid={`mobile-${link.testId}`}
               onClick={() => setOpen(false)}
               className={`block px-6 py-3 text-sm font-medium transition-colors hover:bg-secondary/70 ${
                 isLinkActive(link.to) ? "text-primary" : "text-muted-foreground"

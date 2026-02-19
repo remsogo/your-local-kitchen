@@ -3,7 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { getLocaleFromPathname } from "@/lib/i18n";
 import Header from "./components/Header";
 import StickyOrderBar from "./components/StickyOrderBar";
 import Footer from "./components/Footer";
@@ -19,6 +20,16 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+const RouteLoadingFallback = () => {
+  const location = useLocation();
+  const locale = getLocaleFromPathname(location.pathname);
+  return (
+    <div className="min-h-screen pt-32 flex items-center justify-center">
+      <p className="text-muted-foreground">{locale === "fr" ? "Chargement..." : "Loading..."}</p>
+    </div>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -28,13 +39,9 @@ const App = () => (
         <PageMeta />
         <Header />
         <StickyOrderBar />
-        <main>
+        <main data-testid="app-main">
           <Suspense
-            fallback={
-              <div className="min-h-screen pt-32 flex items-center justify-center">
-                <p className="text-muted-foreground">Chargement...</p>
-              </div>
-            }
+            fallback={<RouteLoadingFallback />}
           >
             <Routes>
               <Route path="/" element={<Index />} />

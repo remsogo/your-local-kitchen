@@ -12,9 +12,9 @@ const MentionsLegales = () => {
   const hasMissingLegalData = legalValuesToCheck.some((value) => value.includes("A RENSEIGNER"));
 
   return (
-    <div className="min-h-screen pb-16 pt-32">
+    <div className="min-h-screen pb-16 pt-32" data-testid="legal-page">
       <div className="container mx-auto max-w-3xl px-4">
-        <h1 className="mb-8 text-center font-display text-5xl text-gradient sm:text-6xl">
+        <h1 className="mb-8 text-center font-display text-5xl text-gradient sm:text-6xl" data-testid="legal-title">
           {isFrench ? "Mentions legales" : "Legal notice"}
         </h1>
 

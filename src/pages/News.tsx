@@ -35,9 +35,9 @@ const News = () => {
   const locale = getLocaleFromPathname(location.pathname);
 
   return (
-    <div className="min-h-screen pb-16 pt-32">
+    <div className="min-h-screen pb-16 pt-32" data-testid="news-page">
       <div className="container mx-auto max-w-4xl px-4">
-        <h1 className="text-center font-display text-5xl text-gradient sm:text-6xl">
+        <h1 className="text-center font-display text-5xl text-gradient sm:text-6xl" data-testid="news-title">
           {locale === "fr" ? "Actualites" : "News"}
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-center text-body-muted">
@@ -48,7 +48,7 @@ const News = () => {
 
         <section className="mt-8 space-y-4" aria-label={locale === "fr" ? "Liste des actualites" : "News list"}>
           {NEWS_POSTS.map((post) => (
-            <article key={post.id} className="section-shell rounded-2xl p-5 sm:p-6">
+            <article key={post.id} className="section-shell rounded-2xl p-5 sm:p-6" data-testid={`news-item-${post.id}`}>
               <div className="flex items-center gap-2 text-primary">
                 <Megaphone size={16} />
                 <span className="text-xs font-semibold uppercase tracking-wide">

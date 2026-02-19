@@ -12,13 +12,13 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="flex min-h-screen items-center justify-center bg-muted" data-testid="not-found-page">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
+        <h1 className="mb-4 text-4xl font-bold" data-testid="not-found-code">404</h1>
         <p className="mb-4 text-xl text-muted-foreground">
           {locale === "fr" ? "Page introuvable" : "Oops! Page not found"}
         </p>
-        <a href={homePath} className="text-primary underline hover:text-primary/90">
+        <a href={homePath} className="text-primary underline hover:text-primary/90" data-testid="not-found-home-link">
           {locale === "fr" ? "Retour a l'accueil" : "Return to Home"}
         </a>
       </div>

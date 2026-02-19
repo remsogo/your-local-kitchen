@@ -63,6 +63,8 @@ const Contact = () => {
             formErrorMessage: "Merci d'indiquer au minimum votre message.",
             formSuccess: "Ouverture de votre application email...",
             website: "Site web",
+            emailSubject: `[Site ${restaurantInfo.name}] Message client`,
+            privacyNote: "Aucune donnee n'est stockee automatiquement via ce formulaire.",
           }
         : {
             title: "Contact",
@@ -87,6 +89,8 @@ const Contact = () => {
             formErrorMessage: "Please provide at least your message.",
             formSuccess: "Opening your email application...",
             website: "Website",
+            emailSubject: `[${restaurantInfo.name} Website] Customer message`,
+            privacyNote: "No data is automatically stored through this form.",
           },
     [locale],
   );
@@ -113,7 +117,7 @@ const Contact = () => {
       return;
     }
 
-    const subject = encodeURIComponent(`[Site ${restaurantInfo.name}] Message client`);
+    const subject = encodeURIComponent(labels.emailSubject);
     const body = encodeURIComponent(
       [
         `${labels.name}: ${form.name || "-"}`,
@@ -137,9 +141,11 @@ const Contact = () => {
   const statusClass = status.isOpen ? "border-green-400/45 bg-green-500/12 text-green-300" : "border-red-400/45 bg-red-500/12 text-red-300";
 
   return (
-    <div className="min-h-screen pb-16 pt-32">
+    <div className="min-h-screen pb-16 pt-32" data-testid="contact-page">
       <div className="container mx-auto max-w-3xl px-4">
-        <h1 className="mb-3 text-center font-display text-5xl text-gradient sm:text-6xl">{labels.title}</h1>
+        <h1 className="mb-3 text-center font-display text-5xl text-gradient sm:text-6xl" data-testid="contact-title">
+          {labels.title}
+        </h1>
         <p className="mb-10 text-center text-body-muted">{labels.intro}</p>
 
         <div className="space-y-6">
@@ -227,13 +233,14 @@ const Contact = () => {
             </h2>
             <p className="text-sm text-muted-foreground">{labels.contactFormIntro}</p>
 
-            <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+            <form className="mt-4 space-y-3" onSubmit={handleSubmit} data-testid="contact-form">
               <div>
                 <label htmlFor="contact-name" className="mb-1 block text-sm font-medium text-foreground">
                   {labels.name}
                 </label>
                 <input
                   id="contact-name"
+                  data-testid="contact-name-input"
                   value={form.name}
                   onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
                   className="focus-ring w-full rounded-lg border border-border bg-card/70 px-3 py-2 text-sm"
@@ -246,6 +253,7 @@ const Contact = () => {
                 </label>
                 <input
                   id="contact-phone"
+                  data-testid="contact-phone-input"
                   value={form.phone}
                   onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
                   className="focus-ring w-full rounded-lg border border-border bg-card/70 px-3 py-2 text-sm"
@@ -258,6 +266,7 @@ const Contact = () => {
                 </label>
                 <textarea
                   id="contact-message"
+                  data-testid="contact-message-input"
                   value={form.message}
                   onChange={(event) => setForm((prev) => ({ ...prev, message: event.target.value }))}
                   rows={5}
@@ -268,6 +277,7 @@ const Contact = () => {
               <label className="flex items-start gap-2 rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-sm text-muted-foreground">
                 <input
                   type="checkbox"
+                  data-testid="contact-consent-checkbox"
                   checked={form.consent}
                   onChange={(event) => setForm((prev) => ({ ...prev, consent: event.target.checked }))}
                   className="mt-1"
@@ -275,11 +285,20 @@ const Contact = () => {
                 <span>{labels.consent}</span>
               </label>
 
-              {formError && <p className="text-sm text-destructive">{formError}</p>}
-              {formInfo && <p className="text-sm text-green-400">{formInfo}</p>}
+              {formError && (
+                <p className="text-sm text-destructive" data-testid="contact-form-error">
+                  {formError}
+                </p>
+              )}
+              {formInfo && (
+                <p className="text-sm text-green-400" data-testid="contact-form-info">
+                  {formInfo}
+                </p>
+              )}
 
               <button
                 type="submit"
+                data-testid="contact-submit"
                 className="focus-ring inline-flex items-center gap-2 rounded-lg border border-primary/55 bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-95"
               >
                 <Send size={16} />
@@ -289,9 +308,7 @@ const Contact = () => {
 
             <p className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
               <ShieldCheck size={14} className="text-primary" />
-              {locale === "fr"
-                ? "Aucune donnee n'est stockee automatiquement via ce formulaire."
-                : "No data is automatically stored through this form."}
+              {labels.privacyNote}
             </p>
           </section>
         </div>

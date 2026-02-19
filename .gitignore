@@ -25,3 +25,8 @@ dist-ssr
 .env.*
 !.env.example
 .env
+
+# Playwright artifacts
+playwright-report/
+test-results/
+blob-report/

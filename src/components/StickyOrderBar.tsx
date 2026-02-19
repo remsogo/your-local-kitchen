@@ -14,7 +14,10 @@ const StickyOrderBar = () => {
   if (phoneNumbers.length === 0) return null;
 
   return (
-    <div className="fixed left-0 right-0 top-16 z-40 border-b border-primary/25 bg-background/82 backdrop-blur-md">
+    <div
+      className="fixed left-0 right-0 top-16 z-40 border-b border-primary/25 bg-background/82 backdrop-blur-md"
+      data-testid="sticky-order-bar"
+    >
       <div className="container mx-auto flex h-14 items-center justify-center gap-2 overflow-x-auto px-4">
         <span className="hidden shrink-0 rounded-full border border-border/70 bg-card/65 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground lg:inline-flex">
           {locale === "fr" ? "Commande rapide" : "Quick order"}
@@ -23,6 +26,7 @@ const StickyOrderBar = () => {
           <a
             key={phone}
             href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+            data-testid={`sticky-order-call-${phone.replace(/[^\d+]/g, "")}`}
             onClick={() =>
               trackAnalyticsEvent({
                 event_type: "click",

@@ -39,7 +39,10 @@ const ReviewHighlight = ({ locale }: ReviewHighlightProps) => {
   if (!seeded || !review) return null;
 
   return (
-    <section className="mx-auto mt-8 max-w-3xl rounded-xl border border-white/12 bg-card/55 p-4 backdrop-blur-sm" aria-label="Avis clients">
+    <section
+      className="mx-auto mt-8 max-w-3xl rounded-xl border border-white/12 bg-card/55 p-4 backdrop-blur-sm"
+      aria-label={locale === "fr" ? "Avis clients" : "Customer reviews"}
+    >
       <p className="text-xs font-semibold uppercase tracking-wide text-primary">
         {locale === "fr" ? "Avis clients Google (selection)" : "Google customer reviews (selection)"}
       </p>
