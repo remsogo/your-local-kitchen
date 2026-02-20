@@ -1,4 +1,4 @@
-export const deliveryCommunes20km = [
+export const deliveryCommunesNearby = [
   "Ablis",
   "Allainville",
   "Angervilliers",

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { extractSearchQuery, trackAnalyticsEvent } from "@/lib/analyticsEvents";
+import { DELIVERY_MAX_KM } from "@/lib/delivery";
 import { getLocaleFromPathname, getRouteKeyFromPathname, localizePath, type Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://www.pizzatiq.fr";
@@ -47,13 +48,13 @@ const copyByLocale = (locale: Locale) =>
     ? {
         homeTitle: "Pizz'Atiq - Snack, Kebab, Pizza et Restaurant a Sonchamp",
         homeDescription:
-          "Snack, kebab, pizza et restaurant a Sonchamp. Pizz'Atiq: menu, horaires et livraison dans un rayon de 20 km autour de Sonchamp.",
+          `Snack, kebab, pizza et restaurant a Sonchamp. Pizz'Atiq: menu, horaires et livraison dans un rayon de ${DELIVERY_MAX_KM} km autour de Sonchamp.`,
         menuTitle: "Menu Pizz'Atiq - Pizza, Kebab, Snack et Restaurant a Sonchamp",
         menuDescription:
           "Menu snack a Sonchamp: pizzas, kebabs, burgers, sandwichs, tacos, salades et supplements. Livraison locale autour de Sonchamp.",
         contactTitle: "Contact Pizz'Atiq - Snack, Kebab, Pizza a Sonchamp",
         contactDescription:
-          "Adresse, telephones, horaires et zone de livraison Pizz'Atiq a Sonchamp et autour (20 km).",
+          `Adresse, telephones, horaires et zone de livraison Pizz'Atiq a Sonchamp et autour (${DELIVERY_MAX_KM} km).`,
         legalTitle: "Mentions legales - Pizz'Atiq",
         legalDescription: "Mentions legales, RGPD et informations reglementaires du site Pizz'Atiq.",
         newsTitle: "Actualites Pizz'Atiq - Offres et infos locales",
@@ -62,7 +63,7 @@ const copyByLocale = (locale: Locale) =>
     : {
         homeTitle: "Pizz'Atiq - Pizza, Kebab and Snack in Sonchamp",
         homeDescription:
-          "Local snack in Sonchamp with pizzas, kebab, burgers and delivery within 20 km around Sonchamp.",
+          `Local snack in Sonchamp with pizzas, kebab, burgers and delivery within ${DELIVERY_MAX_KM} km around Sonchamp.`,
         menuTitle: "Pizz'Atiq Menu - Pizza, Kebab, Burgers and Tacos",
         menuDescription:
           "Browse Pizz'Atiq menu in Sonchamp: pizzas, kebab, burgers, sandwiches, tacos and extras.",

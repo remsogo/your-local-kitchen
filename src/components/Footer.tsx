@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { MapPin, Clock } from "lucide-react";
 import { restaurantInfo } from "@/data/menuData";
 import logoPizzatiq from "@/assets/logo_pizzatiq.webp";
+import { DELIVERY_MAX_KM } from "@/lib/delivery";
 import { getLocaleFromPathname } from "@/lib/i18n";
 
 const Footer = () => {
@@ -74,11 +75,11 @@ const Footer = () => {
           <h2 className="mb-4 font-display text-xl text-foreground">{locale === "fr" ? "Livraison" : "Delivery"}</h2>
           <p className="text-sm leading-6 text-muted-foreground">
             {locale === "fr"
-              ? "Livraison disponible dans un rayon de 20 km autour de Sonchamp."
-              : "Delivery available within 20 km around Sonchamp."}
+              ? `Livraison disponible dans un rayon de ${DELIVERY_MAX_KM} km autour de Sonchamp.`
+              : `Delivery available within ${DELIVERY_MAX_KM} km around Sonchamp.`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {locale === "fr" ? "Frais de livraison" : "Delivery fee"} : 1,50 EUR a 3,50 EUR
+            {locale === "fr" ? "Frais de livraison" : "Delivery fee"} : 1,50 EUR a 2,50 EUR
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {locale === "fr" ? "Horaires" : "Hours"} : 11:00-14:30 / 18:00-22:00

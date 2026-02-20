@@ -5,6 +5,7 @@ import heroBg from "@/assets/hero-bg.jpg";
 import heroBgWebp from "@/assets/hero-bg.webp";
 import { openingHours, deliveryZones, deliveryHours } from "@/data/menuData";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
+import { DELIVERY_MAX_KM } from "@/lib/delivery";
 import DeliveryAreaSeo from "@/components/DeliveryAreaSeo";
 import ReviewHighlight from "@/components/ReviewHighlight";
 import { getBusinessStatus } from "@/lib/businessStatus";
@@ -64,7 +65,7 @@ const Index = () => {
             openingHours: "Nos Horaires",
             delivery: "Livraison",
             deliverySchedulePrefix: "Horaires de livraison",
-            deliveryNote: "Livraison disponible dans toute ville a 20 km ou moins de Sonchamp.",
+            deliveryNote: `Livraison disponible dans toute ville a ${DELIVERY_MAX_KM} km ou moins de Sonchamp.`,
           }
         : {
             heading: "Pizz'Atiq",
@@ -81,7 +82,7 @@ const Index = () => {
             openingHours: "Opening Hours",
             delivery: "Delivery",
             deliverySchedulePrefix: "Delivery hours",
-            deliveryNote: "Delivery available in towns within 20 km from Sonchamp.",
+            deliveryNote: `Delivery available in towns within ${DELIVERY_MAX_KM} km from Sonchamp.`,
           },
     [locale, menuCtaVariant],
   );

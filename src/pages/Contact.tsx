@@ -3,6 +3,7 @@ import { MapPin, Clock, Phone, Globe, Send, ShieldCheck } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { restaurantInfo, deliveryHours } from "@/data/menuData";
 import { trackAnalyticsEvent } from "@/lib/analyticsEvents";
+import { DELIVERY_MAX_KM } from "@/lib/delivery";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { getBusinessStatus } from "@/lib/businessStatus";
 import DeliveryCoverageMap from "@/components/DeliveryCoverageMap";
@@ -47,7 +48,7 @@ const Contact = () => {
             status: "Etat",
             delivery: "Livraison",
             orderByPhone: "Commander",
-            deliveryText: "Nous livrons dans toutes les villes a 20 km ou moins de Sonchamp.",
+            deliveryText: `Nous livrons dans toutes les villes a ${DELIVERY_MAX_KM} km ou moins de Sonchamp.`,
             deliveryHoursLabel: "Horaires de livraison",
             deliveryFeeLabel: "Frais de livraison",
             contactFormTitle: "Formulaire de contact (RGPD)",
@@ -73,7 +74,7 @@ const Contact = () => {
             status: "Status",
             delivery: "Delivery",
             orderByPhone: "Order",
-            deliveryText: "We deliver in all towns within 20 km from Sonchamp.",
+            deliveryText: `We deliver in all towns within ${DELIVERY_MAX_KM} km from Sonchamp.`,
             deliveryHoursLabel: "Delivery hours",
             deliveryFeeLabel: "Delivery fee",
             contactFormTitle: "Contact form (GDPR)",
@@ -219,10 +220,10 @@ const Contact = () => {
               {labels.deliveryHoursLabel}: <span className="text-foreground font-semibold">{deliveryHours}</span>
             </p>
             <p className="text-body-muted mt-2">
-              {labels.deliveryFeeLabel}: <span className="text-primary font-semibold">1,50 EUR a 3,50 EUR</span> -{" "}
+              {labels.deliveryFeeLabel}: <span className="text-primary font-semibold">1,50 EUR a 2,50 EUR</span> -{" "}
               {locale === "fr"
-                ? "minimum de commande de 20 EUR a 35 EUR selon la distance"
-                : "minimum order between 20 EUR and 35 EUR depending on distance"}
+                ? "minimum de commande de 20 EUR a 30 EUR selon la distance"
+                : "minimum order between 20 EUR and 30 EUR depending on distance"}
               .
             </p>
           </section>

@@ -147,7 +147,6 @@ export const deliveryZones = [
   { zone: "Sonchamp (0-5 km)", minOrder: "20,00 EUR", deliveryFee: "1,50 EUR" },
   { zone: "5-10 km", minOrder: "25,00 EUR", deliveryFee: "2,00 EUR" },
   { zone: "10-15 km", minOrder: "30,00 EUR", deliveryFee: "2,50 EUR" },
-  { zone: "15-20 km", minOrder: "35,00 EUR", deliveryFee: "3,50 EUR" },
 ];
 
 export const restaurantInfo = {

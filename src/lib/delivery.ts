@@ -2,6 +2,9 @@ export const RESTAURANT_COORDINATES = {
   lat: 48.575896,
   lng: 1.878415,
 };
+export const DELIVERY_MAX_KM = 15;
+export const DELIVERY_RADIUS_METERS = DELIVERY_MAX_KM * 1000;
+const OSRM_ROUTE_API_URL = "https://router.project-osrm.org";
 
 const EARTH_RADIUS_KM = 6371;
 
@@ -9,7 +12,6 @@ const DELIVERY_BANDS = [
   { maxKm: 5, minOrderEur: 20, feeEur: 1.5 },
   { maxKm: 10, minOrderEur: 25, feeEur: 2 },
   { maxKm: 15, minOrderEur: 30, feeEur: 2.5 },
-  { maxKm: 20, minOrderEur: 35, feeEur: 3.5 },
 ] as const;
 
 const toRadians = (deg: number) => (deg * Math.PI) / 180;
@@ -47,7 +49,7 @@ export const estimateDelivery = (distanceKm: number): DeliveryEstimate => {
       distanceKm: roundedDistance,
       minOrderEur: null,
       feeEur: null,
-      bandLabel: "> 20 km",
+      bandLabel: `> ${DELIVERY_MAX_KM} km`,
     };
   }
 
@@ -65,6 +67,13 @@ export type GeocodingMatch = {
   displayName: string;
   lat: number;
   lng: number;
+};
+
+export type DeliveryDistanceSource = "road" | "air";
+
+export type DeliveryDistance = {
+  distanceKm: number;
+  source: DeliveryDistanceSource;
 };
 
 export const geocodeAddress = async (query: string): Promise<GeocodingMatch | null> => {
@@ -96,5 +105,63 @@ export const geocodeAddress = async (query: string): Promise<GeocodingMatch | nu
     displayName: data[0].display_name,
     lat: Number(data[0].lat),
     lng: Number(data[0].lon),
+  };
+};
+
+export const computeRouteDistanceKm = async (
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number },
+): Promise<number | null> => {
+  const search = new URLSearchParams({
+    alternatives: "true",
+    overview: "false",
+    steps: "false",
+  });
+  const route = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+
+  try {
+    const response = await fetch(`${OSRM_ROUTE_API_URL}/route/v1/driving/${route}?${search.toString()}`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as {
+      code?: string;
+      routes?: Array<{ distance?: number }>;
+    };
+    if (data.code !== "Ok" || !Array.isArray(data.routes) || data.routes.length === 0) {
+      return null;
+    }
+
+    const validRouteDistances = data.routes
+      .map((routeInfo) => routeInfo.distance)
+      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+
+    if (!validRouteDistances.length) return null;
+
+    return Math.min(...validRouteDistances) / 1000;
+  } catch {
+    return null;
+  }
+};
+
+export const computeDeliveryDistance = async (
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number },
+): Promise<DeliveryDistance> => {
+  const routeDistanceKm = await computeRouteDistanceKm(from, to);
+  if (routeDistanceKm !== null) {
+    return {
+      distanceKm: routeDistanceKm,
+      source: "road",
+    };
+  }
+
+  return {
+    distanceKm: computeDistanceKm(from, to),
+    source: "air",
   };
 };

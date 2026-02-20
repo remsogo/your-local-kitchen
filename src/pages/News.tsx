@@ -25,8 +25,8 @@ const NEWS_POSTS: NewsPost[] = [
     date: "2026-02-16",
     titleFr: "Livraison locale et verificateur d'adresse",
     titleEn: "Local delivery and address checker",
-    summaryFr: "La page contact affiche la zone de 20 km et un estimateur de frais selon la distance.",
-    summaryEn: "The contact page now includes a 20 km delivery map and a distance-based fee estimator.",
+    summaryFr: "La page contact affiche la zone de 15 km et un estimateur de frais selon la distance.",
+    summaryEn: "The contact page now includes a 15 km delivery map and a distance-based fee estimator.",
   },
 ];
 

@@ -3,10 +3,13 @@ import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from "
 import { Loader2, LocateFixed, Search } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import {
+  computeDeliveryDistance,
+  DELIVERY_MAX_KM,
+  DELIVERY_RADIUS_METERS,
   RESTAURANT_COORDINATES,
-  computeDistanceKm,
   estimateDelivery,
   geocodeAddress,
+  type DeliveryDistanceSource,
   type GeocodingMatch,
 } from "@/lib/delivery";
 
@@ -14,7 +17,10 @@ type DeliveryCoverageMapProps = {
   locale: Locale;
 };
 
-type DeliveryCheckResult = GeocodingMatch & ReturnType<typeof estimateDelivery>;
+type DeliveryCheckResult = GeocodingMatch &
+  ReturnType<typeof estimateDelivery> & {
+    distanceSource: DeliveryDistanceSource;
+  };
 
 const PRICE_FORMAT = new Intl.NumberFormat("fr-FR", {
   style: "currency",
@@ -46,34 +52,38 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
         ? {
             title: "Zone de livraison interactive",
             subtitle:
-              "Visualisez le rayon de 20 km et testez une adresse pour verifier l'eligibilite et les frais estimes.",
+              `Visualisez le rayon de ${DELIVERY_MAX_KM} km et testez une adresse. La distance est calculee sur l'itineraire routier le plus court propose.`,
             placeholder: "Ex: 12 Rue de la Gare, Rambouillet",
             button: "Verifier une adresse",
             found: "Adresse trouvee",
             eligible: "Livraison disponible",
             notEligible: "Hors zone de livraison",
             distance: "Distance estimee",
+            distanceSourceRoad: "Calcul par itineraire routier (plus court propose).",
+            distanceSourceFallback: "Service d'itineraire indisponible: calcul temporaire a vol d'oiseau.",
             fee: "Frais de livraison estimes",
             minOrder: "Minimum de commande",
             errorNotFound: "Adresse introuvable. Essayez avec ville + code postal.",
             errorGeneric: "Impossible de verifier cette adresse pour le moment.",
-            radiusLabel: "Rayon de livraison 20 km",
+            radiusLabel: `Rayon de livraison ${DELIVERY_MAX_KM} km`,
           }
         : {
             title: "Interactive delivery area map",
             subtitle:
-              "See the 20 km delivery radius and check an address to estimate eligibility and delivery fees.",
+              `See the ${DELIVERY_MAX_KM} km delivery radius and check an address. Distance is computed on the shortest suggested road route.`,
             placeholder: "Example: 12 Rue de la Gare, Rambouillet",
             button: "Check address",
             found: "Address found",
             eligible: "Delivery available",
             notEligible: "Outside delivery area",
             distance: "Estimated distance",
+            distanceSourceRoad: "Road-route distance calculation (shortest suggested route).",
+            distanceSourceFallback: "Routing service unavailable: temporary crow-flies estimate.",
             fee: "Estimated delivery fee",
             minOrder: "Minimum order",
             errorNotFound: "Address not found. Try city + postal code.",
             errorGeneric: "Unable to check this address right now.",
-            radiusLabel: "20 km delivery radius",
+            radiusLabel: `${DELIVERY_MAX_KM} km delivery radius`,
           },
     [locale],
   );
@@ -90,9 +100,9 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
         setError(text.errorNotFound);
         return;
       }
-      const distance = computeDistanceKm(RESTAURANT_COORDINATES, geocoded);
-      const estimate = estimateDelivery(distance);
-      setResult({ ...geocoded, ...estimate });
+      const deliveryDistance = await computeDeliveryDistance(RESTAURANT_COORDINATES, geocoded);
+      const estimate = estimateDelivery(deliveryDistance.distanceKm);
+      setResult({ ...geocoded, ...estimate, distanceSource: deliveryDistance.source });
     } catch (err) {
       console.error("[DeliveryCoverageMap] geocode failed", err);
       setResult(null);
@@ -122,7 +132,7 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
           />
           <Circle
             center={[RESTAURANT_COORDINATES.lat, RESTAURANT_COORDINATES.lng]}
-            radius={20000}
+            radius={DELIVERY_RADIUS_METERS}
             pathOptions={{ color: "#ff9800", fillColor: "#ff9800", fillOpacity: 0.12 }}
           >
             <Tooltip>{text.radiusLabel}</Tooltip>
@@ -194,6 +204,9 @@ const DeliveryCoverageMap = ({ locale }: DeliveryCoverageMapProps) => {
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             {text.distance}: <span className="font-semibold text-foreground">{result.distanceKm.toFixed(1)} km</span>
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {result.distanceSource === "road" ? text.distanceSourceRoad : text.distanceSourceFallback}
           </p>
           {result.eligible ? (
             <>
