@@ -30,3 +30,10 @@ dist-ssr
 playwright-report/
 test-results/
 blob-report/
+
+# Local visual audit artifacts
+screenuser/compare/
+screenuser/visual_audit/
+screenuser/*.jpg
+screenuser/*visual-check*.png
+screenuser/seo_metadata_notes_LOCAL_ONLY.md
