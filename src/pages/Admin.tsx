@@ -53,9 +53,12 @@ const Admin = () => {
     days: analyticsDays,
     page: analyticsPage,
   });
+  const [editingCategory, setEditingCategory] = useState<{ id: string } | null>(null);
   const [editingItem, setEditingItem] = useState<{ catId: string; itemIdx: number } | null>(null);
+  const [editCategoryForm, setEditCategoryForm] = useState({ title: "", subtitle: "" });
   const [editForm, setEditForm] = useState<MenuItem>({ name: "", description: "", prices: [] });
   const [uploading, setUploading] = useState(false);
+  const [savingCategory, setSavingCategory] = useState(false);
   const [saving, setSaving] = useState(false);
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [creatingItem, setCreatingItem] = useState(false);
@@ -113,6 +116,59 @@ const Admin = () => {
     setEditingItem({ catId, itemIdx });
     setEditForm({ ...cat.items[itemIdx] });
     setAdminMessage("");
+  };
+
+  const startCategoryEdit = (categoryId: string) => {
+    const category = menu.find((entry) => entry.id === categoryId);
+    if (!category) {
+      setAdminMessage("Categorie introuvable.");
+      return;
+    }
+
+    setEditingCategory({ id: categoryId });
+    setEditCategoryForm({
+      title: category.title,
+      subtitle: category.subtitle || "",
+    });
+    setAdminMessage("");
+  };
+
+  const saveCategoryEdit = async () => {
+    if (!editingCategory) {
+      setAdminMessage("Aucune categorie en cours de modification.");
+      return;
+    }
+
+    const title = editCategoryForm.title.trim();
+    if (!title) {
+      setAdminMessage("Le nom de categorie est requis.");
+      return;
+    }
+
+    setSavingCategory(true);
+    setAdminMessage("");
+    try {
+      const { error } = await supabase
+        .from("menu_categories")
+        .update({
+          title,
+          subtitle: editCategoryForm.subtitle.trim() || null,
+        })
+        .eq("id", editingCategory.id);
+
+      if (error) throw error;
+
+      await refetch();
+      setEditingCategory(null);
+      setAdminMessage("Categorie mise a jour.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible de modifier la categorie.");
+      console.error("[Admin] saveCategoryEdit failed", err);
+      setAdminMessage(`Erreur categorie: ${message}`);
+      alert(`Impossible de modifier la categorie: ${message}`);
+    } finally {
+      setSavingCategory(false);
+    }
   };
 
   const saveEdit = async () => {
@@ -255,6 +311,10 @@ const Admin = () => {
 
       if (editingItem?.catId === categoryId) {
         setEditingItem(null);
+      }
+
+      if (editingCategory?.id === categoryId) {
+        setEditingCategory(null);
       }
 
       setCategoryPendingDelete(null);
@@ -921,6 +981,50 @@ const Admin = () => {
           </AlertDialogContent>
         </AlertDialog>
 
+        {editingCategory && (
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div
+              className="bg-card rounded-xl p-6 max-w-md w-full card-glow"
+              data-testid="admin-category-edit-dialog"
+            >
+              <h3 className="font-display text-2xl text-foreground mb-4">Modifier la categorie</h3>
+              <div className="space-y-3">
+                <input
+                  data-testid="admin-category-edit-title"
+                  className="w-full bg-secondary text-foreground rounded-lg px-4 py-2 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={editCategoryForm.title}
+                  onChange={(e) => setEditCategoryForm({ ...editCategoryForm, title: e.target.value })}
+                  placeholder="Nom de categorie"
+                />
+                <input
+                  data-testid="admin-category-edit-subtitle"
+                  className="w-full bg-secondary text-foreground rounded-lg px-4 py-2 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={editCategoryForm.subtitle}
+                  onChange={(e) => setEditCategoryForm({ ...editCategoryForm, subtitle: e.target.value })}
+                  placeholder="Sous-titre (optionnel)"
+                />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  data-testid="admin-category-edit-save"
+                  onClick={saveCategoryEdit}
+                  disabled={savingCategory}
+                  className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-lg py-2 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  <Save size={16} /> {savingCategory ? "Enregistrement..." : "Enregistrer"}
+                </button>
+                <button
+                  data-testid="admin-category-edit-cancel"
+                  onClick={() => setEditingCategory(null)}
+                  className="flex-1 bg-secondary text-secondary-foreground rounded-lg py-2 font-semibold hover:opacity-80 transition-opacity"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Editing modal */}
         {editingItem && (
           <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1048,20 +1152,32 @@ const Admin = () => {
                     {category.subtitle || `${category.items.length} produit(s)`}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  data-testid={`admin-category-delete-${category.id}`}
-                  onClick={() => setCategoryPendingDelete({
-                    id: category.id,
-                    title: category.title,
-                    itemCount: category.items.length,
-                  })}
-                  disabled={Boolean(deletingCategoryId)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
-                >
-                  <Trash2 size={14} />
-                  Supprimer la categorie
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    data-testid={`admin-category-edit-${category.id}`}
+                    onClick={() => startCategoryEdit(category.id)}
+                    disabled={Boolean(deletingCategoryId)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                  >
+                    <Edit2 size={14} />
+                    Modifier la categorie
+                  </button>
+                  <button
+                    type="button"
+                    data-testid={`admin-category-delete-${category.id}`}
+                    onClick={() => setCategoryPendingDelete({
+                      id: category.id,
+                      title: category.title,
+                      itemCount: category.items.length,
+                    })}
+                    disabled={Boolean(deletingCategoryId)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
+                  >
+                    <Trash2 size={14} />
+                    Supprimer la categorie
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 {category.items.length === 0 && (

@@ -51,3 +51,27 @@ test("creates then deletes a category without affecting existing categories", as
   await expect(page.getByTestId("admin-category-section-cat-keep")).toBeVisible();
   await expect(page.getByText("Produit garde")).toBeVisible();
 });
+
+test("edits a category title and subtitle without affecting other categories", async ({ page }) => {
+  await loginAsMockAdmin(page);
+
+  const updatedTitle = "Categorie renommee";
+  const updatedSubtitle = "Sous-titre mis a jour";
+
+  await page.getByTestId("admin-category-edit-cat-delete").click();
+  await expect(page.getByTestId("admin-category-edit-dialog")).toBeVisible();
+
+  await page.getByTestId("admin-category-edit-title").fill(updatedTitle);
+  await page.getByTestId("admin-category-edit-subtitle").fill(updatedSubtitle);
+  await page.getByTestId("admin-category-edit-save").click();
+
+  const renamedSection = page.getByTestId("admin-category-section-cat-delete");
+  await expect(page.getByTestId("admin-message")).toHaveText("Categorie mise a jour.");
+  await expect(renamedSection.getByRole("heading", { name: updatedTitle })).toBeVisible();
+  await expect(renamedSection.getByText(updatedSubtitle)).toBeVisible();
+  await expect(renamedSection.getByText("A supprimer")).toHaveCount(0);
+
+  const untouchedSection = page.getByTestId("admin-category-section-cat-keep");
+  await expect(untouchedSection.getByRole("heading", { name: "A conserver" })).toBeVisible();
+  await expect(untouchedSection.getByText("Toujours visible")).toBeVisible();
+});
