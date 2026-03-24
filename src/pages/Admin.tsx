@@ -4,11 +4,22 @@ import { Lock, Save, Trash2, Edit2, Image, Upload, X, LogOut, Plus, Minus, Folde
 import { supabase } from "@/integrations/supabase/client";
 import { useMenu } from "@/hooks/useMenu";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { createCategoryPayload, createItemPayload, sanitizePrices, toSupabaseErrorMessage } from "@/lib/adminMenu";
+import { createCategoryPayload, createItemPayload, sanitizePrices, toSequentialSortOrderUpdates, toSupabaseErrorMessage } from "@/lib/adminMenu";
 import { useSauces } from "@/hooks/useSauces";
 import { useAnalyticsOverview } from "@/hooks/useAnalyticsOverview";
 import { formatInteractionLabel } from "@/lib/analyticsLabels";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 const compressImageBeforeUpload = async (file: File): Promise<File> => {
   if (!file.type.startsWith("image/")) return file;
@@ -48,8 +59,10 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [creatingItem, setCreatingItem] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
   const [adminTab, setAdminTab] = useState<"menu" | "sauces" | "analytics">("menu");
   const [adminMessage, setAdminMessage] = useState<string>("");
+  const [categoryPendingDelete, setCategoryPendingDelete] = useState<{ id: string; title: string; itemCount: number } | null>(null);
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [newCategorySubtitle, setNewCategorySubtitle] = useState("");
   const [newItemCategoryId, setNewItemCategoryId] = useState("");
@@ -64,10 +77,36 @@ const Admin = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!newItemCategoryId && menu.length > 0) {
+    if (menu.length === 0) {
+      if (newItemCategoryId) {
+        setNewItemCategoryId("");
+      }
+      return;
+    }
+
+    if (!menu.some((category) => category.id === newItemCategoryId)) {
       setNewItemCategoryId(menu[0].id);
     }
   }, [menu, newItemCategoryId]);
+
+  const applySortOrderUpdates = async (
+    table: "menu_categories" | "menu_items",
+    updates: Array<{ id: string; sort_order: number }>,
+  ) => {
+    if (updates.length === 0) return;
+
+    const results = await Promise.all(
+      updates.map(({ id, sort_order }) =>
+        supabase
+          .from(table)
+          .update({ sort_order })
+          .eq("id", id),
+      ),
+    );
+
+    const failed = results.find((result) => result.error);
+    if (failed?.error) throw failed.error;
+  };
 
   const startEdit = (catId: string, itemIdx: number) => {
     const cat = menu.find((c) => c.id === catId)!;
@@ -124,13 +163,35 @@ const Admin = () => {
   const deleteItem = async (catId: string, itemIdx: number) => {
     setAdminMessage("");
     try {
-      const item = menu.find(c => c.id === catId)!.items[itemIdx];
+      const category = menu.find((c) => c.id === catId);
+      if (!category) {
+        setAdminMessage("Suppression impossible: categorie introuvable.");
+        return;
+      }
+
+      const item = category.items[itemIdx];
       if (!item.dbId) {
         setAdminMessage("Suppression impossible: identifiant produit manquant.");
         return;
       }
-      const { error } = await supabase.from("menu_items").delete().eq("id", item.dbId);
-      if (error) throw error;
+
+      const remainingItemUpdates = toSequentialSortOrderUpdates(
+        category.items
+          .filter((_, index) => index !== itemIdx)
+          .flatMap((menuItem) => (menuItem.dbId ? [{ id: menuItem.dbId }] : [])),
+      );
+
+      const { error: deletePricesError } = await supabase.from("menu_item_prices").delete().eq("item_id", item.dbId);
+      if (deletePricesError) throw deletePricesError;
+
+      const { error: deleteItemError } = await supabase.from("menu_items").delete().eq("id", item.dbId);
+      if (deleteItemError) throw deleteItemError;
+      await applySortOrderUpdates("menu_items", remainingItemUpdates);
+
+      if (editingItem?.catId === catId && editingItem.itemIdx === itemIdx) {
+        setEditingItem(null);
+      }
+
       await refetch();
       setAdminMessage("Produit supprime.");
     } catch (err) {
@@ -138,6 +199,74 @@ const Admin = () => {
       console.error("[Admin] deleteItem failed", err);
       setAdminMessage(`Erreur suppression: ${message}`);
       alert(`Impossible de supprimer le produit: ${message}`);
+    }
+  };
+
+  const deleteCategory = async (categoryId: string) => {
+    const category = menu.find((entry) => entry.id === categoryId);
+    if (!category) {
+      setCategoryPendingDelete(null);
+      setAdminMessage("Categorie introuvable.");
+      return;
+    }
+
+    const remainingCategoryUpdates = toSequentialSortOrderUpdates(
+      menu
+        .filter((entry) => entry.id !== categoryId)
+        .map((entry) => ({ id: entry.id })),
+    );
+
+    setDeletingCategoryId(categoryId);
+    setAdminMessage("");
+    try {
+      const { data: categoryItems, error: fetchItemsError } = await supabase
+        .from("menu_items")
+        .select("id")
+        .eq("category_id", categoryId);
+
+      if (fetchItemsError) throw fetchItemsError;
+
+      const itemIds = (categoryItems || []).map((item) => item.id);
+
+      if (itemIds.length > 0) {
+        const { error: deletePricesError } = await supabase
+          .from("menu_item_prices")
+          .delete()
+          .in("item_id", itemIds);
+
+        if (deletePricesError) throw deletePricesError;
+      }
+
+      const { error: deleteItemsError } = await supabase
+        .from("menu_items")
+        .delete()
+        .eq("category_id", categoryId);
+
+      if (deleteItemsError) throw deleteItemsError;
+
+      const { error: deleteCategoryError } = await supabase
+        .from("menu_categories")
+        .delete()
+        .eq("id", categoryId);
+
+      if (deleteCategoryError) throw deleteCategoryError;
+
+      await applySortOrderUpdates("menu_categories", remainingCategoryUpdates);
+
+      if (editingItem?.catId === categoryId) {
+        setEditingItem(null);
+      }
+
+      setCategoryPendingDelete(null);
+      await refetch();
+      setAdminMessage("Categorie supprimee.");
+    } catch (err) {
+      const message = toSupabaseErrorMessage(err, "Impossible de supprimer la categorie.");
+      console.error("[Admin] deleteCategory failed", err);
+      setAdminMessage(`Erreur categorie: ${message}`);
+      alert(`Impossible de supprimer la categorie: ${message}`);
+    } finally {
+      setDeletingCategoryId(null);
     }
   };
 
@@ -414,7 +543,7 @@ const Admin = () => {
           Modifiez les prix, descriptions et photos de vos produits. Les changements sont enregistres dans la base de donnees.
         </p>
         {adminMessage && (
-          <p className="mb-6 rounded-lg border border-border/60 bg-card px-4 py-3 text-sm text-foreground">
+          <p data-testid="admin-message" className="mb-6 rounded-lg border border-border/60 bg-card px-4 py-3 text-sm text-foreground">
             {adminMessage}
           </p>
         )}
@@ -548,18 +677,21 @@ const Admin = () => {
             </h2>
             <div className="space-y-2">
               <input
+                data-testid="admin-category-title-input"
                 className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Nom de categorie"
                 value={newCategoryTitle}
                 onChange={(e) => setNewCategoryTitle(e.target.value)}
               />
               <input
+                data-testid="admin-category-subtitle-input"
                 className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Sous-titre (optionnel)"
                 value={newCategorySubtitle}
                 onChange={(e) => setNewCategorySubtitle(e.target.value)}
               />
               <button
+                data-testid="admin-category-create"
                 onClick={createCategory}
                 disabled={creatingCategory || !newCategoryTitle.trim()}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
@@ -575,91 +707,97 @@ const Admin = () => {
               <Plus size={18} className="text-primary" />
               Ajouter un produit
             </h2>
-            <div className="space-y-2">
-              <select
-                value={newItemCategoryId}
-                onChange={(e) => setNewItemCategoryId(e.target.value)}
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                {menu.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.title}</option>
-                ))}
-              </select>
-              <input
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Nom du produit"
-                value={newItemForm.name}
-                onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
-              />
-              <input
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Description"
-                value={newItemForm.description}
-                onChange={(e) => setNewItemForm({ ...newItemForm, description: e.target.value })}
-              />
-              <input
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="URL image (optionnel)"
-                value={newItemForm.imageUrl || ""}
-                onChange={(e) => setNewItemForm({ ...newItemForm, imageUrl: e.target.value })}
-              />
-
+            {menu.length === 0 ? (
+              <p className="rounded-lg border border-border/60 bg-secondary/30 px-3 py-3 text-sm text-muted-foreground">
+                Creez d abord une categorie pour pouvoir ajouter un produit.
+              </p>
+            ) : (
               <div className="space-y-2">
-                {newItemForm.prices.map((p, i) => (
-                  <div key={i} className="flex gap-2">
-                    <input
-                      className="w-1/3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Label"
-                      value={p.label}
-                      onChange={(e) => {
-                        const prices = [...newItemForm.prices];
-                        prices[i] = { ...prices[i], label: e.target.value };
-                        setNewItemForm({ ...newItemForm, prices });
-                      }}
-                    />
-                    <input
-                      className="w-2/3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Prix"
-                      value={p.price}
-                      onChange={(e) => {
-                        const prices = [...newItemForm.prices];
-                        prices[i] = { ...prices[i], price: e.target.value };
-                        setNewItemForm({ ...newItemForm, prices });
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (newItemForm.prices.length === 1) return;
-                        const prices = newItemForm.prices.filter((_, idx) => idx !== i);
-                        setNewItemForm({ ...newItemForm, prices });
-                      }}
-                      className="rounded-lg border border-border bg-secondary px-2 text-foreground hover:bg-destructive hover:text-destructive-foreground"
-                      aria-label="Retirer la ligne de prix"
-                    >
-                      <Minus size={14} />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setNewItemForm({ ...newItemForm, prices: [...newItemForm.prices, { label: "", price: "" }] })}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                <select
+                  value={newItemCategoryId}
+                  onChange={(e) => setNewItemCategoryId(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <Plus size={12} />
-                  Ajouter une ligne de prix
+                  {menu.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.title}</option>
+                  ))}
+                </select>
+                <input
+                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Nom du produit"
+                  value={newItemForm.name}
+                  onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
+                />
+                <input
+                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Description"
+                  value={newItemForm.description}
+                  onChange={(e) => setNewItemForm({ ...newItemForm, description: e.target.value })}
+                />
+                <input
+                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="URL image (optionnel)"
+                  value={newItemForm.imageUrl || ""}
+                  onChange={(e) => setNewItemForm({ ...newItemForm, imageUrl: e.target.value })}
+                />
+
+                <div className="space-y-2">
+                  {newItemForm.prices.map((p, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        className="w-1/3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Label"
+                        value={p.label}
+                        onChange={(e) => {
+                          const prices = [...newItemForm.prices];
+                          prices[i] = { ...prices[i], label: e.target.value };
+                          setNewItemForm({ ...newItemForm, prices });
+                        }}
+                      />
+                      <input
+                        className="w-2/3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Prix"
+                        value={p.price}
+                        onChange={(e) => {
+                          const prices = [...newItemForm.prices];
+                          prices[i] = { ...prices[i], price: e.target.value };
+                          setNewItemForm({ ...newItemForm, prices });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (newItemForm.prices.length === 1) return;
+                          const prices = newItemForm.prices.filter((_, idx) => idx !== i);
+                          setNewItemForm({ ...newItemForm, prices });
+                        }}
+                        className="rounded-lg border border-border bg-secondary px-2 text-foreground hover:bg-destructive hover:text-destructive-foreground"
+                        aria-label="Retirer la ligne de prix"
+                      >
+                        <Minus size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setNewItemForm({ ...newItemForm, prices: [...newItemForm.prices, { label: "", price: "" }] })}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    <Plus size={12} />
+                    Ajouter une ligne de prix
+                  </button>
+                </div>
+
+                <button
+                  onClick={createItem}
+                  disabled={creatingItem || !newItemForm.name.trim()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  <Plus size={14} />
+                  {creatingItem ? "Creation..." : "Creer le produit"}
                 </button>
               </div>
-
-              <button
-                onClick={createItem}
-                disabled={creatingItem || !newItemForm.name.trim()}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
-                <Plus size={14} />
-                {creatingItem ? "Creation..." : "Creer le produit"}
-              </button>
-            </div>
+            )}
           </div>
         </div>
         )}
@@ -745,6 +883,43 @@ const Admin = () => {
           </div>
         </div>
         )}
+
+        <AlertDialog
+          open={Boolean(categoryPendingDelete)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCategoryPendingDelete(null);
+            }
+          }}
+        >
+          <AlertDialogContent data-testid="admin-category-delete-dialog">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Supprimer cette categorie ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {categoryPendingDelete
+                  ? `La categorie "${categoryPendingDelete.title}" et ses ${categoryPendingDelete.itemCount} produit(s) seront supprimes definitivement.`
+                  : "Cette action est irreversible."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={Boolean(deletingCategoryId)}>Annuler</AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  data-testid="admin-category-delete-confirm"
+                  variant="destructive"
+                  disabled={!categoryPendingDelete || Boolean(deletingCategoryId)}
+                  onClick={() => {
+                    if (categoryPendingDelete) {
+                      void deleteCategory(categoryPendingDelete.id);
+                    }
+                  }}
+                >
+                  {deletingCategoryId ? "Suppression..." : "Supprimer la categorie"}
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Editing modal */}
         {editingItem && (
@@ -865,9 +1040,35 @@ const Admin = () => {
         {adminTab === "menu" && (
         <div className="space-y-12">
           {menu.map((category) => (
-            <section key={category.id}>
-              <h2 className="font-display text-3xl text-gradient mb-4">{category.title}</h2>
+            <section key={category.id} data-testid={`admin-category-section-${category.id}`}>
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-display text-3xl text-gradient">{category.title}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {category.subtitle || `${category.items.length} produit(s)`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  data-testid={`admin-category-delete-${category.id}`}
+                  onClick={() => setCategoryPendingDelete({
+                    id: category.id,
+                    title: category.title,
+                    itemCount: category.items.length,
+                  })}
+                  disabled={Boolean(deletingCategoryId)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
+                >
+                  <Trash2 size={14} />
+                  Supprimer la categorie
+                </button>
+              </div>
               <div className="space-y-2">
+                {category.items.length === 0 && (
+                  <p className="rounded-lg border border-border/60 bg-card px-4 py-3 text-sm text-muted-foreground">
+                    Aucun produit dans cette categorie.
+                  </p>
+                )}
                 {category.items.map((item, idx) => (
                   <div
                     key={item.dbId || item.name + idx}

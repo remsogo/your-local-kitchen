@@ -36,3 +36,9 @@ export const sanitizePrices = (prices: MenuItem["prices"]) =>
   prices
     .map((p) => ({ label: p.label.trim(), price: p.price.trim() }))
     .filter((p) => p.price);
+
+export const toSequentialSortOrderUpdates = <T extends { id: string }>(records: T[]) =>
+  records.map((record, index) => ({
+    id: record.id,
+    sort_order: index,
+  }));

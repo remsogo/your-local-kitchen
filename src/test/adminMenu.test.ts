@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createCategoryPayload, createItemPayload, sanitizePrices, toSupabaseErrorMessage } from "@/lib/adminMenu";
+import {
+  createCategoryPayload,
+  createItemPayload,
+  sanitizePrices,
+  toSequentialSortOrderUpdates,
+  toSupabaseErrorMessage,
+} from "@/lib/adminMenu";
 
 describe("adminMenu helpers", () => {
   it("builds a category payload with trimmed values", () => {
@@ -48,5 +54,17 @@ describe("adminMenu helpers", () => {
   it("extracts supabase error message safely", () => {
     expect(toSupabaseErrorMessage({ message: "RLS denied" }, "fallback")).toBe("RLS denied");
     expect(toSupabaseErrorMessage({}, "fallback")).toBe("fallback");
+  });
+
+  it("builds sequential sort-order updates", () => {
+    expect(
+      toSequentialSortOrderUpdates([
+        { id: "cat-b" },
+        { id: "cat-d" },
+      ]),
+    ).toEqual([
+      { id: "cat-b", sort_order: 0 },
+      { id: "cat-d", sort_order: 1 },
+    ]);
   });
 });
